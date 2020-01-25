@@ -16,6 +16,8 @@
 4.1 解压第三步下载的com4j包，将args4j-2.0.1.jar，tlbimp.jar，com4j.jar放到本机JDK的bin目录下。
 
 4.2 安装好Visio后找到VISLIB.DLL文件路径，例如：D:\software\visio2013\VISLIB.DLL
+C:\Program Files\Microsoft Office\Office16\VISLIB.DLL
+
 
 4.3 cmd进入JDK安装bin目录，运行以下命令：
 java -jar tlbimp.jar -o visio -p VisioTool "D:\software\visio2013\VISLIB.DLL"
