@@ -8,7 +8,7 @@ public interface STR {
 	public interface Verify{
 		
 		Function<String, Boolean> Digit = (str)->{
-			if(str==null) {
+			if(str==null || "".equals(str)) {
 				return false;
 			}
 			for (int i = 0; i < str.length(); i++){

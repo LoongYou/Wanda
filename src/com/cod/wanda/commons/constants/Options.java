@@ -1,6 +1,11 @@
 package com.cod.wanda.commons.constants;
 
-public interface Options extends Collocations{
+/**
+ * 程序选项接口，常量前缀O_为选项，S_为选项值
+ * @author YL
+ *
+ */
+public interface Options {
 	
 	/**输出文件类型*/
 	String O_OutPutFileType = "outPutFileType";

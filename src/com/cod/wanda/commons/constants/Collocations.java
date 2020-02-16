@@ -1,5 +1,10 @@
 package com.cod.wanda.commons.constants;
 
+/**
+ * 属性组合接口,常亮前缀为F_
+ * @author YL
+ *
+ */
 public interface Collocations {
 	
 	
