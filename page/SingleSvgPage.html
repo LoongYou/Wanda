@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>SingleSvgPage</title>
+</head>
+<body>
+
+	<img id="svg" class="" src="../temp/开通.svg" style="background-color: #FFF0AF">
+
+	<table id="rowTable" class="" border="1"
+		style="position: absolute; left: 70px; top: 50px; background-color: #FFFFFF">
+		<tr>
+			<td style="width: 140px;">账户前端</td>
+			<td style="width: 140px;">账户核心</td>
+			<td style="width: 140px;">功能</td>
+		</tr>
+	</table>
+
+
+	<table id="columnTable" class="" border="1"
+		style="position: absolute; left: 70px; top: 50px; background-color: #FFFFFF">
+		<tr>
+			<td style="width: 40px;">账户前端</td>
+		</tr>
+		<tr>
+			<td style="width: 40px;">账户前端</td>
+		</tr>
+		<tr>
+			<td style="width: 40px;">账户前端</td>
+		</tr>
+	</table>
+
+</body>
+
+<script type="text/javascript">
+	var svgTop, svgLeft;
+
+	window.onload = function() {
+		var obj = document.getElementById("svg");
+		svgTop = obj.offsetTop;
+		svgLeft = obj.offsetLeft;
+		var obj1 = document.getElementById("rowTable");
+		var obj2 = document.getElementById("columnTable");
+
+		obj1.style.top = svgTop + 'px';
+		obj2.style.top = svgTop + 'px';
+		obj1.style.left = svgLeft + 'px';
+		obj2.style.left = svgLeft + 'px';
+
+	}
+
+	window.onscroll = function() {
+		var obj = document.getElementById("rowTable");
+		var height = obj.offsetTop;
+		var scroll = Math.max(document.documentElement.scrollTop,
+				document.body.scrollTop);
+
+		obj.style.top = scroll + 'px';
+	}
+</script>
+
+</html>
