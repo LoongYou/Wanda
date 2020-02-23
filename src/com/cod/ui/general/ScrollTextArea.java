@@ -3,8 +3,14 @@ package com.cod.ui.general;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
+import com.cod.exception.CODException;
 import com.cod.util.Log;
 
+/**
+ * 滚动显示文本域
+ * @author Yulong
+ *
+ */
 public class ScrollTextArea extends JScrollPane implements Log{
 
 	/**
@@ -21,10 +27,28 @@ public class ScrollTextArea extends JScrollPane implements Log{
 		setVisible(true);
 	}
 	
-	public int append(String text) {
+	public void append(String text) {
 		textArea.append(text);
 		textArea.append("\n");
-		return Sucess;
+	}
+	
+	/**
+	 * 打印错误和异常并抛出异常
+	 * @return
+	 * @throws CODException 
+	 */
+	public void appendEx(String text,Throwable e) throws CODException {
+		append(text+":"+ e);
+		ErrorEx(text,e);
+	}
+	
+	/**
+	 * 打印错误和异常
+	 * @param text
+	 */
+	public void appendEr(String text) {
+		append(text);
+		Error(text);
 	}
 	
 }

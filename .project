@@ -3,6 +3,7 @@
 	<name>Wanda</name>
 	<comment></comment>
 	<projects>
+		<project>CallOfDuty</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
