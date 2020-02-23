@@ -14,10 +14,11 @@ import com.cod.ui.general.ScrollTextArea;
 import com.cod.util.FileUtil;
 import com.cod.util.Log;
 import com.cod.util.PropertiesUtil;
-import com.cod.wanda.commons.constants.Collocations.Doc;
-import com.cod.wanda.commons.constants.Options;
+import com.cod.wanda.commons.constants.FieldCollocations.Doc;
+import com.cod.wanda.commons.constants.OptionCollocations.UserOptions;
 import com.cod.wanda.commons.functions.STR;
-import com.cod.wanda.util.ParamMap;
+import com.cod.wanda.util.Produce;
+import com.cod.wanda.util.StringMap;
 
 import visiotool.ClassFactory;
 import visiotool.IVApplication;
@@ -25,7 +26,7 @@ import visiotool.IVDocument;
 import visiotool.IVPage;
 import visiotool.IVPages;
 
-public class Main implements Log,Options{
+public class Main implements Log{
 	
 	static String defProgramHome = "\\Wanda";
 	
@@ -34,7 +35,7 @@ public class Main implements Log,Options{
 	static String userDir = System.getProperty("user.dir");
 	
 	/**程序配置*/
-	private ParamMap<String> proConfig;
+	private StringMap proConfig;
 	
 	
 	private Home home;
@@ -44,7 +45,7 @@ public class Main implements Log,Options{
 	
 		Main main = new Main();
 		main.startFlow();
-		main.docFlow(null);
+		main.docFlow(main.proConfig,main.getDocument(main.proConfig.get(UserOptions.sourceFilePath)));
 	}
 	
 	/**
@@ -85,19 +86,27 @@ public class Main implements Log,Options{
 	 * @param config
 	 * @return
 	 */
-	public ParamMap<String> docFlow(ParamMap<String> config) {
+	public Produce<IVDocument> docFlow(StringMap config,IVDocument doc) {
+		StringMap docConfig = new StringMap();
 		try {
-			//创建文档配置
-			ParamMap<String> docConfig = new ParamMap<>();
-			IVDocument doc = getDocument(proConfig.get(O_SourceFilePath));
+			if(config==null) {
+				return Produce.out(doc, Failed);
+			}
+			if(doc==null) {				
+				String sourceFilePath = config.get(UserOptions.sourceFilePath);
+				doc = getDocument(sourceFilePath);
+			}
 			IVPages pages = doc.pages();
 			short pageCount = pages.count();
-			docConfig.put(Doc.PageCount, String.valueOf(pageCount));
-			
-			if(docConfig.match(O_ApplyPage, S_ApplyAllPage)) {
+			docConfig.put(Doc.name,doc.name());
+			docConfig.put(Doc.pageCount, String.valueOf(pageCount));
+			docConfig.put(Doc.alternateNames,doc.alternateNames());
+			docConfig.put(Doc.creator,doc.creator());
+			docConfig.put(Doc.path, doc.path());
+			if(docConfig.match(UserOptions.applyPage,UserOptions.applyPage_all)) {
 				
 			}else {
-				String itmeIndex = proConfig.getString(O_ApplyPage);
+				String itmeIndex = proConfig.getString(UserOptions.applyPage);
 				Info(STR.Verify.Digit.apply(itmeIndex));
 				if(STR.Verify.Digit.apply(itmeIndex)) {
 					int pageIndex = Integer.parseInt(itmeIndex);
@@ -110,8 +119,19 @@ public class Main implements Log,Options{
 			Error("文档工作流执行异常：",e);
 			
 		}
-		return proConfig;
+		return Produce.out(docConfig, doc);
+	}
+	
+	/**
+	 * 页面工作流
+	 * @return
+	 */
+	public StringMap pageFlow(StringMap config) {
 		
+		
+		
+		
+		return config;
 		
 	}
 	
@@ -121,8 +141,8 @@ public class Main implements Log,Options{
 	 * 读取本地配置
 	 * @return
 	 */
-	public ParamMap<String> getLocalConfig() {
-		ParamMap<String> config = new ParamMap<>();
+	public StringMap getLocalConfig() {
+		StringMap config = new StringMap();
 		Properties properties;
 		try {
 			properties = PropertiesUtil.getProperties(userDir+"\\"+propertiesFileName);
@@ -200,12 +220,6 @@ public class Main implements Log,Options{
 		Info("document has opened");
 		return doc;
 	}
-
-	public int page2svg(IVPage page) {
-		
-		return Sucess;
-	}
-	
 	
 	
 }
