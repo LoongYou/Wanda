@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>SingleSvgPageModule</title>
+</head>
+<body>
+
+	<!-- 现在html5img标签已经支持直接显示svg图片，但是对于svg内嵌的图片还不能良好显示，适用于纯矢量图和文本的svg图形 -->
+	<img id="svg" class="" src="../temp/主流程.svg"
+		style="background-color: #FFF0AF">
+	<!-- 底板，覆盖在svg图片乃至整个页面的蒙板 -->
+
+	<div id="basepanel"
+		style="position: absolute; top: 0px; left: 0px; width: 100%; height: 100%">
+
+		<!-- 泳道+阶段面板 -->
+		<div id="Swimlane-Phase-panel"
+			style="position: relative; top: 0px; left: 0px; width: 100%; height: 100%">
+
+			<!-- 泳道列表 -->
+			<div class="Swimlanelist"
+				style="position: relative; top: 0px; left: 0px; width: 100%; height: 1000px;">
+
+				<!-- 垂直泳道 -->
+				<div class="vertical" style="position: sticky; top: 20px; width:1500px;">
+
+					<!-- 目前浏览器对sticky定位属性兼容性尚可，但是某些属性样式表不支持，通常写在行内style是支持的，
+					sticky是容器相关的，出了容器外面的范围不再生效 -->
+
+					<!-- 分隔符 -->
+					<div class="Swimlane"
+						style="background-color: #FFFFF0; width: 200px; height: 50px; display:inline-block">账户前端</div>
+					<div class="Swimlane"
+						style="background-color: #FFFFF0; width: 200px; height: 50px; display:inline-block">账户核心</div>
+					<div class="Swimlane"
+						style="background-color: #FFFFF0; width: 200px; height: 50px; display:inline-block">功能</div>
+					<div style="clear:both"></div>
+				</div>
+			</div>
+
+			<!-- 阶段列表 -->
+			<div id="Phaselist"
+				style="position: absolute; top: 0px; left: 0px; width: 100%; height: 100%">
+
+				<!-- 垂直阶段 -->
+				<div class="vertical" style="position: sticky; left: 20px; width:50px;">
+
+					<!-- 分隔符 -->
+					<div class="Separator"
+						style="background-color: #FFFFF0; width: 50px; height: 500px;">阶段1</div>
+					<div class="Separator"
+						style="background-color: #FFFFF0; width: 50px; height: 500px;">阶段2</div>
+					<div class="Separator"
+						style="background-color: #FFFFF0; width: 50px; height: 500px;">阶段3</div>
+
+				</div>
+
+			</div>
+
+
+		</div>
+
+	</div>
+
+	<!-- 由于表格缩放和图片缩放比率和单位不一致，暂且不通过表格实现泳道 -->
+
+</body>
+
+<script type="text/javascript">
+	/* 如果浏览器不支持sticky定位，使用js方式实现 */
+	/* if (!CSS.support("position", "sticky")
+			|| !CSS.support("position", "-webkit-sticky")) {
+
+		var svgTop, svgLeft;
+
+		window.onload = function() {
+			var obj = document.getElementById("svg");
+			svgTop = obj.offsetTop;
+			svgLeft = obj.offsetLeft;
+			var obj1 = document.getElementById("rowTable");
+			var obj2 = document.getElementById("columnTable");
+
+			obj1.style.top = svgTop + 'px';
+			obj2.style.top = svgTop + 'px';
+			obj1.style.left = svgLeft + 'px';
+			obj2.style.left = svgLeft + 'px';
+
+		}
+
+		window.onscroll = function() {
+			var obj = document.getElementById("rowTable");
+			var height = obj.offsetTop;
+			var scroll = Math.max(document.documentElement.scrollTop,
+					document.body.scrollTop);
+
+			obj.style.top = scroll + 'px';
+		}
+	} */
+</script>
+
+</html>
