@@ -53,7 +53,7 @@ public class Vsd2Html {
 					
 					//获取page下的所有shape
 					IVShapes shapes = page.shapes();
-					
+					System.out.println("保存页面");
 					//将页面保存为svg矢量图片，保证放大不会失真
 					page.export(outputDir + "\\" + page.name() + ".svg");
 					
@@ -94,6 +94,10 @@ public class Vsd2Html {
 						double pinx = shape.cells("PinX").resultIU() * 25.4;
 						double piny = shape.cells("PinY").resultIU() * 25.4;
 
+						int index = shape.index();
+						short index16 = shape.index16();
+
+						
 						//超链接集合
 						IVHyperlinks hypers = shape.hyperlinks();
 //						IVHyperlink link1 = hypers.item(0);
@@ -144,6 +148,8 @@ public class Vsd2Html {
 						System.out.println("nameU="+nameU);
 						System.out.println("pinx="+pinx);
 						System.out.println("piny="+piny);
+						System.out.println("index="+index);
+						System.out.println("index16="+index16);
 						System.out.println("hypers="+hypers);
 						System.out.println("hcount="+hcount);
 						
@@ -170,14 +176,14 @@ public class Vsd2Html {
 					doc.close();// 关闭打开的文件
 					app.quit();// 退出Visio应用程序
 				}
-				try {
+/*				try {
 					// lets write to a file
 					XMLWriter writer = new XMLWriter(new FileWriter("output.xml"));
 					writer.write(xmlDoc);
 					writer.close();
 				} catch (IOException e) {
 
-				}
+				}*/
 		
 	}
 }
