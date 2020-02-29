@@ -5,47 +5,104 @@
 <title>SingleSvgPageModule</title>
 </head>
 
+<style type="text/css">
+.Swimlane {
+	position: sticky;
+	display: inline-block;
+	background: #FFFFF0;
+	border-style: solid;
+	border-width: 0.5px;
+	margin: 0px;
+	padding: 0px;
+}
+
+.Separator {
+	position: sticky;
+	display: inline-block;
+	background: #FFFFF0;
+	border-style: solid;
+	border-width: 0.5px;
+	margin: 0px;
+	padding: 0px;
+}
+</style>
+
 <script type="text/javascript">
+/* 
+ 说明：
+ 原则：通过原生JS读取内部数据，动态生成所需视觉效果，确保页面只需在浏览器运行。
+ 没有使用jsoup或者nekoHtml等类库处理html文档，因为首先这会极大的增加html及其脚本对外部的依赖，
+ 这对多平台和通用性影响是很大的；其次，使用这些类库都必须解析html，永远无法避免一些意料之无的影响，如新的标签，自定义属性等；
+ 再者，先解析html作为对象再修改，重新生成的html将无法维持原有格式，这对调试和维护是十分不友好的。
+ 最后，所有页面所依赖的参数，都必需事先写入到html文件中，才能保证其独立运行。
+*/
+//visio生成的svg文件是非常不规范的，无从得知某类图形的标识，需要通过外部程序读取vsd文件并将配置信息写入此注释后面，//properties是锚点
+var visioSwimlanShapMIDList = [3,14,28];
+var visioPhaseShapMIDlist = [34,37];
+//visioVsdPropertiesStart
+
+//visioVsdPropertiesEnd
+
 
 window.onload = function(){
 	
-	/* 获取必要参数，如屏幕分辨率等信息 */
-	
-	
-	/* x和Y轴DPI */
-	var XDPI,YDPI;
-	
-	XDPI = window.screen.deviceXDPI;
-	YDPI = window.screen.deviceYDPI;
-	
-	/* 获取屏幕DPI */
-	if(!XDPI||!YDPI){
-		var testNode = document.createElement("DIV");
-		testNode.style.cssText = "width:1in;height:1in;position:absolute;left:0px;top:0px;z-index:9;visibility:hidden";
-		document.body.appendChild(testNode);
-		XDPI = parseInt(testNode.offsetWidth);
-		YDPI = parseInt(testNode.offsetHeight);
-		testNode.parentNode.removeChild(testNode);
+	/* sticky兼容性处理 */
+	if (!CSS.supports("position", "sticky")
+			&& !CSS.supports("position", "-webkit-sticky")) {
+		jsImplementsStickyPositioin();
+	}else{		
+		/* 设置泳道标题  */
+		createVisioShapBatchByMID(visioSwimlanShapMIDList,"Swimlane","vertical1");
+		/* 设置阶段标题  */
+		createVisioShapBatchByMID(visioPhaseShapMIDlist,"Separator","vertical2");
 	}
-	
-	//alert("屏幕DPI:X="+XDPI+",Y="+YDPI);
-
-	var obj = getSvgHtmlObject(getSvgObjectBySelector("g[v\\:mID='3']"));
 
 }
+
+/**
+ * 批量动态生成shape对应的div，并添加到父容器中，设置父容器的定位为首个shape的定位
+ */
+function createVisioShapBatchByMID(MIDlist,className,parentID){
+	if(MIDlist){
+		for(i = 0;i<MIDlist.length;i++){
+			var svgObject = getSvgObjectBySelector(getSvgShapByMIDSelector(MIDlist[i]));
+			var svgShap= getSvgHtmlObject(svgObject);
+			createDiv(className,parentID,(div)=>{
+				div.style.width = svgShap.width-1+'px';
+				div.style.height = svgShap.height-1+'px';
+				/* visio生成svg中图形的第一个desc子节点为图形文字内容 */
+				var desc = svgObject.getElementsByTagName("desc")[0];
+			 	if(desc){
+			 		/* 使用textContent仅获取文本，高性能且防止XSS攻击 */
+			 		div.textContent = desc.textContent;
+				}
+			});
+			/* 设置父容器的位置，以第一个shape的位置为基准 */
+			if(i==0){
+				setVisioDivPosition(svgShap,parentID);
+			}
+		}
+	}
+	
+}
+
 
 /**
  * 通过js原生方法根据id直接获取svg元素信息
  */
 function getSvgObject(id){
-	
-	/* 通过js原生方法直接获取svg元素信息 */
 	var svgObject = document.getElementById(id);
-	
 	/* 获取svg元素的文档定义对象,用于核对 */
 	var svgDocObject = svgObject.getBBox();
-
 	return svgObject;
+}
+
+
+/**
+ * 获取svg元素的html渲染对象
+ */
+function getSvgHtmlObject(svgObject){
+	return svgObject.getBoundingClientRect();
 }
 
 /**
@@ -56,23 +113,64 @@ function getSvgObjectBySelector(selector){
 }
 
 /**
- * 获取svg元素的html渲染对象
+ * 生成visio导出的svg图形中泳道v:mID属性对应的html元素选择器
  */
-function getSvgHtmlObject(svgObject){
-	return svgObject.getBoundingClientRect();
+function getSvgShapByMIDSelector(mID){
+	 /* 特殊属性带有冒号需转义 */
+	return "g[v\\:mID='"+mID+"']";
 }
 
 
 /**
- * 如果浏览器不支持sticky定位，使用js方式实现
+ * 生成Div
+ */
+function createDiv(className,parentId,func){
+	var div = document.createElement("DIV");
+	/* 使用兼容方法 */
+	div.className = className;
+	var parent = document.getElementById(parentId);
+	if(parent){		
+		parent.appendChild(div);
+	}
+	return func(div);
+}
+
+
+/**
+ * 设置泳道/阶段标题Div属性
+ */
+function setVisioSwimlanTitleDiv(div,svgShap,svgObject){
+	div.style.width = svgShap.width-1+'px';
+	div.style.height = svgShap.height-1+'px';
+	/* 第一个desc子节点为泳道标题 */
+	var desc = svgObject.getElementsByTagName("desc")[0];
+ 	if(desc){
+ 		/* 使用textContent仅获取文本，高性能且防止XSS攻击 */
+ 		div.textContent = desc.textContent;
+	}
+ 	return div;
+}
+
+/**
+ * 设置泳道/标题列表位置
+ */
+function setVisioDivPosition(svgShap,id){
+	var div = document.getElementById(id);
+	div.top = svgShap.top;
+	div.left = svgShap.left;
+	return div;
+}
+
+
+
+/**
+ * 使用js方式实现，如果浏览器不支持sticky定位
  */
 function jsImplementsStickyPositioin(){
-	if (!CSS.support("position", "sticky")
-			|| !CSS.support("position", "-webkit-sticky")) {
 
 		var svgTop, svgLeft;
 
-		window.onload = function() {
+
 			var obj = document.getElementById("svg");
 			svgTop = obj.offsetTop;
 			svgLeft = obj.offsetLeft;
@@ -84,7 +182,6 @@ function jsImplementsStickyPositioin(){
 			obj1.style.left = svgLeft + 'px';
 			obj2.style.left = svgLeft + 'px';
 
-		}
 
 		window.onscroll = function() {
 			var obj = document.getElementById("rowTable");
@@ -95,7 +192,25 @@ function jsImplementsStickyPositioin(){
 			obj.style.top = scroll + 'px';
 		}
 	}
-	
+
+/**
+ * 获取屏幕DPI，用于计算多个页面的等比缩放，暂时没用到
+ */
+function getDPI(){
+	/* x和Y轴DPI */
+	var XDPI,YDPI;
+	XDPI = window.screen.deviceXDPI;
+	YDPI = window.screen.deviceYDPI;	
+	if(!XDPI||!YDPI){
+		var testNode = document.createElement("DIV");
+		testNode.style.cssText = "width:1in;height:1in;position:absolute;left:0px;top:0px;z-index:9;visibility:hidden";
+		document.body.appendChild(testNode);
+		XDPI = parseInt(testNode.offsetWidth);
+		YDPI = parseInt(testNode.offsetHeight);
+		testNode.parentNode.removeChild(testNode);
+	}
+	//alert("屏幕DPI:X="+XDPI+",Y="+YDPI);
+	return XDPI,YDPI;
 }
 
 </script>
@@ -117,24 +232,24 @@ function jsImplementsStickyPositioin(){
 			title="泳道+阶段面板">
 
 
-			<div class="Swimlanelist"
+			<div id="Swimlanelist"
 				style="position: absolute; top: 66px; left: 35px; width: 100%; height: 1000px;"
 				title="泳道列表">
 
-				<div class="vertical" style="position: sticky; top: 0px; width:1500px;text-align:justify;word-wrap:break-word;"
+				<div id="vertical1" style="position: sticky; top: 0px; width:1500px;text-align:justify;word-wrap:break-word;"
 				title="垂直泳道">
 
 					<!-- 目前浏览器对sticky定位属性兼容性尚可，但是某些属性样式表不支持，通常写在行内style是支持的，
 					sticky是容器相关的，出了容器外面的范围不再生效 -->
 
-					<div class="Swimlane"
+<!-- 					<div class="Swimlane"
 						style="background-color: #FFFFF0; width: 170px; height: 40px; display:inline-block"
-						title="分隔符">账户前端</div>
+						title="分隔符">泳道1</div>
 					<div class="Swimlane"
-						style="background-color: #FFFFF0; width: 387px; height: 40px; display:inline-block">账户核心</div>
+						style="background-color: #FFFFF0; width: 387px; height: 40px; display:inline-block">泳道2</div>
 					<div class="Swimlane"
-						style="background-color: #FFFFF0; width: 170px; height: 40px; display:inline-block">功能</div>
-					<div style="clear:both"></div>
+						style="background-color: #FFFFF0; width: 170px; height: 40px; display:inline-block">泳道3</div>
+					<div style="clear:both"></div> -->
 				</div>
 			</div>
 
@@ -142,15 +257,16 @@ function jsImplementsStickyPositioin(){
 				style="position: absolute; top: 66px; left: 16px; width: 100%; height: 100%"
 				title="阶段列表">
 
-				<div class="vertical" style="position: sticky; left: 0px; width:50px;"
+				<div id="vertical2" style="position: sticky; left: 0px; width:50px;"
 				title="垂直阶段">
 
-					<div class="Separator"
+<!-- 					<div class="Separator"
 						style="background-color: #FFFFF0; width: 19px; height: 707px;"
 						title="分隔符">阶段1</div>
 					<div class="Separator"
 						style="background-color: #FFFFF0; width: 19px; height: 317px;">阶段2</div>
-
+						<div class="Separator"
+						style="background-color: #FFFFF0; width: 19px; height: 317px;">阶段3</div> -->
 				</div>
 
 			</div>
@@ -164,6 +280,8 @@ function jsImplementsStickyPositioin(){
 
 
 <div id="svgpanel" title="svg画板">
+<!-- svg内容开始锚点 -->
+<!-- svgStartAnchor -->
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <!-- 由 Microsoft Visio, SVG Export 生成 主流程.svg 页-1 -->
@@ -1155,7 +1273,8 @@ function jsImplementsStickyPositioin(){
 	</g>
 </svg>
 
-
+<!-- svgEndAnchor -->
+<!-- svg内容结束锚点 -->
 </div>
 
 
