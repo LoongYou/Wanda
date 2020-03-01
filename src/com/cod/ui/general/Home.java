@@ -18,6 +18,7 @@ public class Home extends JFrame{
 	
 	public Home() {
 		super();
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setSize(800, 500);
 		//设置在屏幕居中
 		setLocationRelativeTo(null);

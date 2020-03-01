@@ -32,6 +32,9 @@ public class FieldCollocations extends Collocations{
 	 */
 	public interface Page {
 		String name = CreateKey("name");
+		String width = CreateKey("PageWidth");
+		String height = CreateKey("PageHeight");
+		String shapeCount = CreateKey("shapeCount");
 	}
 	
 	
@@ -42,7 +45,7 @@ public class FieldCollocations extends Collocations{
 	 */
 	public interface Shape {
 		
-		/**这个模具上显示的文本*/
+		/**即你在这个模具输入的文本，通常遍历当前页面的第一个磨具应该是CFF容器*/
 		String text = "text";
 		/**在page中的唯一id*/
 		String id = "id";
@@ -50,7 +53,7 @@ public class FieldCollocations extends Collocations{
 		String id16 = "id16";
 		/**模具名称*/
 		String name = "name";
-		/**sheet.+id*/
+		/**如果是输入Sheet中登记的，等于Sheet.+id*/
 		String nameId = "nameId";
 		/**英文名称*/
 		String nameU = "nameU";
@@ -61,7 +64,8 @@ public class FieldCollocations extends Collocations{
 		/**超链接子地址*/
 		String hyerLinkSubAddress = "hyerLinkSubAddress";
 		
-		
+		String index = CreateKey("index");
+		String index16 = CreateKey("index16");
 		/**坐标X*/
 		String PinX = "PinX";
 		/**坐标y*/
@@ -78,10 +82,6 @@ public class FieldCollocations extends Collocations{
 		String EndX = "EndX";
 		/**结束点y*/
 		String EndY = "EndY";
-		/**页宽*/
-		String PageWidth = "PageWidth";
-		/**页高*/
-		String PageHeight = "PageHeight";
 	}
 
 

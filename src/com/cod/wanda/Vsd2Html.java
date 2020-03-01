@@ -69,10 +69,11 @@ public class Vsd2Html {
 						* 模型ID
 						* 模型文本
 						* 模型超链接
-						* 模型
+						* 模型引入对象
+						* 模型引出对象
 						*/
 						
-						//即你在这个模具输入的文本
+						//即你在这个模具输入的文本，通常遍历当前页面的第一个磨具应该是CFF容器
 						String text = shape.text();
 						
 						//所在page里面唯一id
@@ -94,9 +95,14 @@ public class Vsd2Html {
 						double pinx = shape.cells("PinX").resultIU() * 25.4;
 						double piny = shape.cells("PinY").resultIU() * 25.4;
 
+						double shapeWidth = shape.cells("Width").resultIU() * 25.4;
+						double shapeHieght = shape.cells("Height").resultIU() * 25.4;
+						
 						int index = shape.index();
 						short index16 = shape.index16();
 
+						
+						
 						
 						//超链接集合
 						IVHyperlinks hypers = shape.hyperlinks();
@@ -120,24 +126,23 @@ public class Vsd2Html {
 //							System.out.println("subAddress="+subAddress);
 //						}
 						short hcount = hypers.count();
-						Iterator<Com4jObject> iter = hypers.iterator();
-						while(iter.hasNext()) {
-							System.out.println(iter.next());
-						}
-						
-						
-//						if(hcount>0) {							
-//							IVHyperlink item = hypers.item(0);
-//							String address = item.address();
-//							String description = item.description();
-//							String subAddress = item.subAddress();
-//							
-//							System.out.println("address="+address);
-//							System.out.println("description="+description);
-//							System.out.println("subAddress="+subAddress);
-//							
-//							
+//						Iterator<Com4jObject> iter = hypers.iterator();
+//						while(iter.hasNext()) {
+//							System.out.println(iter.next());
 //						}
+						
+						
+						if(hcount>0) {							
+							IVHyperlink item = hypers.item(0);
+							String address = item.address();
+							String description = item.description();
+							String subAddress = item.subAddress();
+							
+							System.out.println("address="+address);
+							System.out.println("description="+description);
+							System.out.println("subAddress="+subAddress);
+						
+						}
 						
 						
 						System.out.println("text="+text);
