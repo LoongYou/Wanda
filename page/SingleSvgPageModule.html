@@ -9,6 +9,7 @@
 从而极大的提高大型流程图的可读性，提高阅读效率。粘性标题、粘性菜单、表头冻结是一种h5和手机端都开始流行的视觉交互趋势，与时代俱进。 -->
 
 <style type="text/css">
+
 .Swimlane {
 	display: inline-block;
 	background: #FFFFF0;
@@ -38,6 +39,7 @@
  再者，先解析html作为对象再修改，重新生成的html将无法维持原有格式，这对调试和维护是十分不友好的。
  最后，所有页面所依赖的参数，都必需事先写入到html文件中，才能保证其独立运行。
 */
+
 //visio生成的svg文件是非常不规范的，无从得知某类图形的标识，需要通过外部程序读取vsd文件并将配置信息写入此注释后面，//properties是锚点
 var visioSwimlanShapMIDList = [3,14,28];
 var visioPhaseShapMIDlist = [34,37];
@@ -47,6 +49,13 @@ var visioPhaseShapMIDlist = [34,37];
 
 
 window.onload = function(){
+	
+	/* 刷新页面后取消浏览器自动恢复滚动历史行为 */
+	history.scrollRestoration="manual";
+	/* 重新将页面定位到原点，否则svg元素的定位会出现改变 */
+	window.scrollTo(0,0);
+	
+
 	/* 设置泳道标题  */
 	createVisioShapBatchByMID(visioSwimlanShapMIDList,"Swimlane","vertical1");
 	/* 设置阶段标题  */
@@ -56,12 +65,13 @@ window.onload = function(){
 			&& !CSS.supports("position", "-webkit-sticky")) {
 		jsImplementsStickyPositioin();
 	}else{
-		/* 设置泳道列表容器宽度 */
-		
 		setDivSizeById("vertical1",(vertical1)=>{
 			var Swimlanes = document.getElementsByClassName("Swimlane");
 			if(Swimlanes && Swimlanes.length>0){
+				/* 首个div取消左边距 */
 				Swimlanes[0].style.marginLeft = '0px';
+				
+				/* 宽度微调 */
 				var widthSum = 0;
 				for(var Swimlane of Swimlanes){
 					var width = Swimlane.offsetWidth;
@@ -69,31 +79,33 @@ window.onload = function(){
 					width-=computeWidthReduce(width);
 					Swimlane.style.width = width + 'px';
 				}
+				/* 设置泳道列表容器宽度 */
 				vertical1.style.width = widthSum+'px';
 			}
 		});
-		setDivSizeById("Phaselist",(Phaselist)=>{
-			var Separators = document.getElementsByClassName("Separator");
-			if(Separators && Separators.length>0){
-				Separators[0].style.marginTop = '0px';
-				
-					setDivSizeById("vertical2",(vertical2)=>{
-					vertical2.style.width = Separators[0].offsetWidth +'px';
-				});
-				
-				var heightSum = 0;
-				for(var Separator of Separators){
-					var height = Separator.offsetHeight;
-					height-=computeHeightReduce(height);
-					Separator.style.height = height + 'px';
-				}
+
+		var Separators = document.getElementsByClassName("Separator");
+		if(Separators && Separators.length>0){
+			/* 首个div取消上边距 */
+			Separators[0].style.marginTop = '0px';
+				setDivSizeById("vertical2",(vertical2)=>{
+				/* 设置阶段列表容器宽度 */
+				vertical2.style.width = Separators[0].offsetWidth +'px';
+			});
+			
+			/* 高度微调 */
+			var heightSum = 0;
+			for(var Separator of Separators){
+				var height = Separator.offsetHeight;
+				height-=computeHeightReduce(height);
+				Separator.style.height = height + 'px';
 			}
-		});
+		}
 	}
 }
 
 /**
- * 计算元素尺寸缩减量,用于对那些根据svg图形生成的DIV元素进行纵向或横向尺寸微调，
+ * 计算元素尺寸缩减量,用于对那些根据svg图形生成的DIV元素进行纵向或横向尺寸微调。
  * 由于浏览器对svg图形的渲染后的计算存在误差（受到svg内部许多自定义设置影响），
  * 转换为html元素尺寸并不一定精确，在等比缩放中尤为明显
  */
@@ -114,7 +126,7 @@ function computeWidthReduce(width){
 		}else if(w<=712){//2
 			divisor = 1993;
 		}
-		return divisor/w;//随着宽度线性递减量程
+		return divisor/w;//线性递减量程
 	}
 	return 0;
 }
@@ -136,7 +148,7 @@ function computeHeightReduce(height){
 		}else if(h<=712){//2
 			divisor = 3700;
 		}
-		return divisor/h;//随着宽度线性递减量程
+		return divisor/h;//线性递减量程
 	}
 	return 0;
 }
@@ -357,8 +369,8 @@ function getDPI(){
 <div id="svgpanel" title="svg画板">
 <!-- svg内容开始锚点 -->
 <!-- svgStartAnchor -->
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"> -->
 <!-- 由 Microsoft Visio, SVG Export 生成 主流程.svg 主流程 -->
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events"
 		xmlns:v="http://schemas.microsoft.com/visio/2003/SVGExtensions/" width="11.6929in" height="15.748in"
