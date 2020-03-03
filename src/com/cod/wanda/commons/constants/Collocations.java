@@ -16,7 +16,7 @@ import java.util.Set;
  */
 public class Collocations {
 	
-	/**所有属性的字段的对应的key值，是以字段所在的类全限定名+给定的字段名组成，参考{@link #CreateKey(String)}
+	/**所有属性的字段的对应的key值，是以字段所在的类全限定名+给定的字段名组成，参考{@link #createKey(String)}
 	 * 即是不同的类里面有相同的字段名，key值也不会相同，但是同一个类中字段名是可能人为重复的
 	 */
 	static Set<String> keySet = new HashSet<>();
@@ -40,7 +40,7 @@ public class Collocations {
 	 * @param keyName
 	 * @return
 	 */
-	static String CreateKey(String keyName) {
+	static String createKey(String keyName) {
 		String key = Thread.currentThread().getStackTrace()[2].getClassName()+"."+keyName;
 		if(keySet.contains(key)) {
 			conflictKeyList.add(key);

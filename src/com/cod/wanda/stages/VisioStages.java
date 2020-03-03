@@ -12,11 +12,14 @@ import visiotool.IVShape;
 import visiotool.IVShapes;
 
 public interface VisioStages {
+
 	/**
 	 * 工序：处理page对象信息
+	 * @param config
+	 * @param page
 	 * @return
 	 */
-	static Produce<IVPage> pageStages(StringMap config,IVPage page) {
+	default Produce<IVPage> pageStages(StringMap config,IVPage page) {
 		StringMap pageConfig = new StringMap();
 		//获取page下的所有shape
 		IVShapes shapes = page.shapes();
@@ -30,8 +33,13 @@ public interface VisioStages {
 		return Produce.out(pageConfig, page);
 	}
 	
-	
-	static Produce<IVShape> shapeStages(StringMap config,IVShape shape) {
+	/**
+	 * 工序：处理shape对象信息
+	 * @param config
+	 * @param shape
+	 * @return
+	 */
+	default Produce<IVShape> shapeStages(StringMap config,IVShape shape) {
 
 		/*获取shap必要的信息,这些信息用于支持展示流程图的时候html页面执行的操作，如超链接、上一个节点、下一个节点、甚至是修改节点文本、超链接等等
 		* 这些信息包括：
@@ -60,7 +68,7 @@ public interface VisioStages {
 		shapeConfig.put(Shape.index16, String.valueOf(shape.index16()));
 		IVHyperlinks hypers = shape.hyperlinks();
 		short hcount = hypers.count();
-		if(hcount>0) {							
+		if(hcount>0) {
 			IVHyperlink item = hypers.item(0);
 			shapeConfig.put(Shape.hyerLinkAddress, item.address());
 			shapeConfig.put(Shape.hyerLinkDescription, item.address());

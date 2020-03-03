@@ -18,11 +18,11 @@ public class FieldCollocations extends Collocations{
 	 *
 	 */
 	public interface Doc {
-		String name = CreateKey("name");
-		String pageCount = CreateKey("pageCount");
-		String alternateNames = CreateKey("alternateNames");
-		String creator = CreateKey("creator");
-		String path = CreateKey("path");
+		String name = createKey("name");
+		String pageCount = createKey("pageCount");
+		String alternateNames = createKey("alternateNames");
+		String creator = createKey("creator");
+		String path = createKey("path");
 	}
 	
 	/**
@@ -31,10 +31,12 @@ public class FieldCollocations extends Collocations{
 	 *
 	 */
 	public interface Page {
-		String name = CreateKey("name");
-		String width = CreateKey("PageWidth");
-		String height = CreateKey("PageHeight");
-		String shapeCount = CreateKey("shapeCount");
+		String name = createKey("name");
+		String width = createKey("PageWidth");
+		String height = createKey("PageHeight");
+		String shapeCount = createKey("shapeCount");
+		String visioSwimlanShapMIDList = createKey("visioSwimlanShapMIDList");
+		String visioPhaseShapMIDlist = createKey("visioPhaseShapMIDlist");
 	}
 	
 	
@@ -64,8 +66,8 @@ public class FieldCollocations extends Collocations{
 		/**超链接子地址*/
 		String hyerLinkSubAddress = "hyerLinkSubAddress";
 		
-		String index = CreateKey("index");
-		String index16 = CreateKey("index16");
+		String index = createKey("index");
+		String index16 = createKey("index16");
 		/**坐标X*/
 		String PinX = "PinX";
 		/**坐标y*/
@@ -85,6 +87,18 @@ public class FieldCollocations extends Collocations{
 	}
 
 
+	/**
+	 * html页面对象
+	 * @author Yulong
+	 *
+	 */
+	public interface HtmlPage {
+		String javascriptVars = createKey("javascriptVars");
+		String visioSvgContent = createKey("visioSvgContent");
+	}
+	
+	
+	
 	public static void main(String[] args) throws Exception {
 //		Collocations coll = new Collocations();
 //		Class<?>[] interfaces = coll.getInnerInterface();
