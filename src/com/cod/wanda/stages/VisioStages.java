@@ -37,8 +37,8 @@ import visiotool.IVShapes;
  */
 public interface VisioStages extends Log{
 	
-	
 
+	
 	/**
 	 * 工序：处理doc对象信息
 	 * @param <T>
@@ -82,12 +82,12 @@ public interface VisioStages extends Log{
 	};
 	
 	
-	/**
+/*	*//**
 	 * 工序：处理page对象信息
 	 * @param config
 	 * @param page
 	 * @return
-	 */
+	 *//*
 	default Produce<IVPage> pageStages(StringMap config,List<IVPage> pageList) {
 		StringMap pageConfig = new StringMap();
 		//获取page下的所有shape
@@ -101,7 +101,7 @@ public interface VisioStages extends Log{
 		pageConfig.put(Page.height, String.valueOf(page.pageSheet().cells("PageHeight").resultIU() * 96));
 		return Produce.out(pageConfig, pageList);
 	}
-	
+	*/
 	/**
 	 * 工序：处理shape对象信息
 	 * @param config

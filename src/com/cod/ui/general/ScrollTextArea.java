@@ -22,18 +22,31 @@ public class ScrollTextArea extends JScrollPane implements Log{
 	
 	public ScrollTextArea() {
 		textArea = new JTextArea();
+		textArea.setAutoscrolls(true);
 		setViewportView(textArea);
 		setAutoscrolls(true);
 		setVisible(true);
 	}
 	
+	/**
+	 * 设置行数
+	 * @param rows
+	 */
+	public void setRows(int rows) {
+		textArea.setRows(rows);
+	}
+	
+	/**
+	 * 输出文本
+	 * @param text
+	 */
 	public void append(String text) {
 		textArea.append(text);
 		textArea.append("\n");
 	}
 	
 	/**
-	 * 打印错误和异常并抛出异常
+	 * 输出和打印日志：错误和异常，并抛出异常
 	 * @return
 	 * @throws CODException 
 	 */
@@ -43,7 +56,7 @@ public class ScrollTextArea extends JScrollPane implements Log{
 	}
 	
 	/**
-	 * 打印错误和异常
+	 * 输出和打印日志：错误和异常
 	 * @param text
 	 */
 	public void appendEr(String text) {

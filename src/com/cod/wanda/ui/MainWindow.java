@@ -29,6 +29,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import com.cod.ui.general.ScrollTextArea;
+
 public class MainWindow {
 	
 	/**默认风格*/
@@ -69,15 +71,29 @@ public class MainWindow {
 	public static final String Theme = "Theme(主题)";
 	
 	static JFrame frame;
-	static JTextArea logTextArea;
-	static JTextArea bottomTextArea;
+	public static ScrollTextArea logTextArea;
+	public static JTextArea bottomTextArea;
 	static List<JButton> menuList;
 	
 	public static void main(String[] args) {
+		new MainWindow();
+	}
+	
+	
+	public MainWindow() {
 		
 		frame = new JFrame();
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setBounds(800, 300, 750, 300);
+		//设置在屏幕居中(不一定能居中)
+		frame.setLocationRelativeTo(null);	
+				/*
+				 * 设置窗口在屏幕居中备选兼容方案
+				 * int DIALOG_WHITE = 400; int DIALOG_HEIGHT = 400; Point point =
+				 * GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint();
+				 * this.setBounds(point.x - DIALOG_WHITE / 2, point.y - DIALOG_HEIGHT / 2,
+				 * DIALOG_WHITE, DIALOG_HEIGHT);
+				 */
+		frame.setSize(750, 500);
 		frame.setLayout(new BorderLayout());
 		
 		//基础底板
@@ -128,9 +144,6 @@ public class MainWindow {
 		
 		frame.repaint();
 		frame.setVisible(true);
-		logTextArea.append("\nUI初始化完成");
-		bottomTextArea.append("UI初始化完成");
-
 	}
 	
 	/**
@@ -150,7 +163,7 @@ public class MainWindow {
 	 */
 	public static void initMenuButtom(List<JButton> menus) {
 		for(JButton menu:menus) {
-			menu.setPreferredSize(new Dimension(120,25));
+			menu.setPreferredSize(new Dimension(120,50));
 			setUniformFont(menu);
 		}
 	}
@@ -173,6 +186,7 @@ public class MainWindow {
 		bottomTextArea = new JTextArea();
 		bottomPanel.add(bottomTextArea,BorderLayout.NORTH);
 		bottomTextArea.setRows(1);
+		bottomTextArea.append("UI初始化完成");
 	}
 	
 	/**
@@ -203,15 +217,13 @@ public class MainWindow {
 	 * @param logCard
 	 */
 	public static void initLogCard(JPanel logCard) {
-		JScrollPane textAreaScrollPanel = new JScrollPane();
-		textAreaScrollPanel.setPreferredSize(new Dimension(450,230));
-		setUniformFont(textAreaScrollPanel);
-		logCard.add(textAreaScrollPanel);
-		logTextArea = new JTextArea();
+		
+		logTextArea = new ScrollTextArea();
+		logTextArea.setPreferredSize(new Dimension(450,230));
 		logTextArea.setRows(8);
-		logTextArea.setAutoscrolls(true);
-		textAreaScrollPanel.setViewportView(logTextArea);
-		textAreaScrollPanel.setAutoscrolls(true);
+		setUniformFont(logTextArea);
+		logCard.add(logTextArea);
+		logTextArea.append("\nUI初始化完成");
 	}
 	
 	

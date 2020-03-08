@@ -1,6 +1,5 @@
 package com.cod.wanda;
 
-import java.awt.BorderLayout;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,30 +8,18 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import com.cod.exception.CODException;
-import com.cod.ui.general.Home;
 import com.cod.ui.general.ScrollTextArea;
 import com.cod.util.FileUtil;
 import com.cod.util.Log;
 import com.cod.util.PropertiesUtil;
-import com.cod.wanda.commons.constants.FieldCollocations.Doc;
-import com.cod.wanda.commons.constants.FieldCollocations.Page;
-import com.cod.wanda.commons.constants.FieldCollocations.Shape;
-import com.cod.wanda.commons.constants.OptionCollocations.UserOptions;
-import com.cod.wanda.commons.functions.STR;
 import com.cod.wanda.stages.HtmlStages;
 import com.cod.wanda.stages.VisioStages;
-import com.cod.wanda.util.Produce;
+import com.cod.wanda.ui.MainWindow;
 import com.cod.wanda.util.StringMap;
 
 import visiotool.ClassFactory;
 import visiotool.IVApplication;
 import visiotool.IVDocument;
-import visiotool.IVHyperlink;
-import visiotool.IVHyperlinks;
-import visiotool.IVPage;
-import visiotool.IVPages;
-import visiotool.IVShape;
-import visiotool.IVShapes;
 
 public class Main implements Log,VisioStages,HtmlStages{
 	
@@ -44,16 +31,14 @@ public class Main implements Log,VisioStages,HtmlStages{
 	
 	/**程序配置*/
 	private StringMap proConfig;
-	
-	
-	private Home home;
-	private ScrollTextArea textArea;
+	private static MainWindow mainWindow;
+	private static ScrollTextArea textArea;
 	
 	public static void main(String[] args) throws CODException {
 	
 		Main main = new Main();
 		main.startFlow();
-		main.docStages(main.proConfig,main.getDocument(main.proConfig.get(UserOptions.sourceFilePath)));
+		//main.docStages(main.proConfig,main.getDocument(main.proConfig.get(UserOptions.sourceFilePath)));
 	}
 	
 	/**
@@ -82,39 +67,11 @@ public class Main implements Log,VisioStages,HtmlStages{
 	 */
 	public int initUi() {
 		Info("初始化UI start...");
-		home = new Home();
-		textArea = new ScrollTextArea();
-		home.add(textArea,BorderLayout.NORTH);
-		textArea.append("初始化UI finish");
+		mainWindow = new MainWindow();
+		textArea = MainWindow.logTextArea;
 		return Sucess;
 	}
-
-	/**
-	 * 转换工作流
-	 * @param config
-	 * @param doc
-	 * @return
-	 */
-	public int convertFlow(StringMap config,IVDocument doc) {
 		
-			if() {
-				
-			}else {
-				String itmeIndex = proConfig.getString(UserOptions.applyPage);
-				Info(STR.Verify.Digit.apply(itmeIndex));
-				if(STR.Verify.Digit.apply(itmeIndex)) {
-					int pageIndex = Integer.parseInt(itmeIndex);
-					if(pageIndex<pageCount) {
-						page2svg(pages.item(pageCount));
-					}
-				}
-			}
-
-		return Produce.out(docConfig, doc);
-	}
-
-	
-	
 	
 	
 	/**
@@ -187,18 +144,6 @@ public class Main implements Log,VisioStages,HtmlStages{
 		List<String> dependenetFiles = new ArrayList<>();
 		dependenetFiles.add(propertiesFileName);
 		return dependenetFiles;
-	}
-	
-	public IVDocument getDocument(String filePath) {
-		Info("filePath=",filePath);
-		// 创建Visio对象
-		IVApplication app = ClassFactory.createApplication();
-		// Visio对象设置为可见
-		app.visible(true);			
-		// 打开一个Visio文件
-		IVDocument doc = app.documents().open(filePath);
-		Info("document has opened");
-		return doc;
 	}
 	
 	
