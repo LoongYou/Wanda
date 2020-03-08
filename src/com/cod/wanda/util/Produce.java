@@ -3,7 +3,7 @@ package com.cod.wanda.util;
 import com.cod.util.RSC;
 
 /**
- * 工序产出出对象，提供规范的工作流式函数入参和出参形式
+ * 工序产出对象，提供规范的工作流式函数入参和出参形式
  * @author Yulong
  *
  */

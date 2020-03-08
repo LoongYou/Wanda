@@ -12,7 +12,7 @@ public interface HtmlStages extends Log{
 	String svgContentAnchor = "<!-- svgContentAnchor -->";
 	
 	/**
-	 * 工序：根据
+	 * 工序：将参数或标签文本插入到html文本指定位置中
 	 * @param config
 	 * @param html
 	 * @return

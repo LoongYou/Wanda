@@ -97,7 +97,7 @@ public class Main implements Log,VisioStages,HtmlStages{
 	 */
 	public int convertFlow(StringMap config,IVDocument doc) {
 		
-			if(docConfig.match(UserOptions.applyPage,UserOptions.applyPage_all)) {
+			if() {
 				
 			}else {
 				String itmeIndex = proConfig.getString(UserOptions.applyPage);
@@ -113,6 +113,9 @@ public class Main implements Log,VisioStages,HtmlStages{
 		return Produce.out(docConfig, doc);
 	}
 
+	
+	
+	
 	
 	/**
 	 * 读取本地配置

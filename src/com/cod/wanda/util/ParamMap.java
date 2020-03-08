@@ -1,6 +1,7 @@
 package com.cod.wanda.util;
 
 import java.util.HashMap;
+import java.util.Set;
 
 /**
  * 一个通用的适用于属性组合映射关系传参的Map类
@@ -14,6 +15,9 @@ public class ParamMap<V> extends HashMap<String, V>{
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	
+	
+	public static final boolean Cover = true;
 
 	/**
 	 * 判断给定的键对应的值和给定的值是否相等
@@ -66,5 +70,33 @@ public class ParamMap<V> extends HashMap<String, V>{
 			return v.toString();
 		}
 	}
+	
+	/**
+	 * 与指定的ParamMap合并
+	 * @param map
+	 * @param isCover 是否覆盖已有值
+	 * @return
+	 */
+	public ParamMap<V> merge(ParamMap<V> map,boolean isCover){
+		ParamMap<V> paramMap = new ParamMap<V>();
+		
+		if(map==null) {
+			return this;
+		}
+		
+		Set<String> keySet = map.keySet();
+		
+		keySet.forEach(key->{
+			if(isCover == Cover) {
+				paramMap.put(key, map.get(key));
+			}else {
+				if(!this.containsKey(key)) {
+					paramMap.put(key, map.get(key));
+				}
+			}
+		});	
+		return this;	
+	}
+	
 	
 }

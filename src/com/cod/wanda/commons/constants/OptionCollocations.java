@@ -14,17 +14,17 @@ public class OptionCollocations extends Collocations{
 	public interface UserOptions{
 		
 		/**输出文件类型*/
-		String outPutFileType = CreateKey("outPutFileType");
-		String outPutFileType_Svg = CreateKey("outPutFileType_Svg");
+		String outPutFileType = createKey("outPutFileType");
+		String outPutFileType_Svg = createKey("outPutFileType_Svg");
 		
 		/**源文件路径*/
-		String sourceFilePath = CreateKey("sourceFilePath");
+		String sourceFilePath = createKey("sourceFilePath");
 		/**输出路径*/
-		String outPutDir = CreateKey("outPutDir");
+		String outPutDir = createKey("outPutDir");
 		
 		/**处理的页面*/
-		String applyPage = CreateKey("applyPage");
-		String applyPage_all = CreateKey("applyPage_all");
+		String applyPage = createKey("applyPage");
+		String applyPage_all = createKey("applyPage_all");
 		
 	}
 	
