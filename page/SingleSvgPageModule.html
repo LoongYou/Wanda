@@ -40,7 +40,7 @@
  最后，所有页面所依赖的参数，都必需事先写入到html文件中，才能保证其独立运行。
 */
 
-//visio生成的svg文件是非常不规范的，无从得知某类图形的标识，需要通过外部程序读取vsd文件并将配置信息写入此注释后面，//properties是锚点
+//visio生成的svg文件是非常不规范的，无从得知某类图形的标识，需要借助外部程序读取vsd文件并将配置信息写入此注释后面，//properties是锚点
 var visioSwimlanShapMIDList = [3,14,28];
 var visioPhaseShapMIDlist = [34,37];
 
@@ -52,7 +52,7 @@ window.onload = function(){
 	
 	/* 刷新页面后取消浏览器自动恢复滚动历史行为 */
 	history.scrollRestoration="manual";
-	/* 重新将页面定位到原点，否则svg元素的定位会出现改变 */
+	/* 重新将页面定位到原点，否则svg元素的初始定位会发生改变 */
 	window.scrollTo(0,0);
 	
 

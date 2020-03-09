@@ -55,6 +55,7 @@ public class Produce<P>{
 		return new Produce<T>(config,product);
 	}
 
+	
 	/**
 	 * 返回工序的配置、产出、结果
 	 * @param config

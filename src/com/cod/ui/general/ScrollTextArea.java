@@ -59,9 +59,9 @@ public class ScrollTextArea extends JScrollPane implements Log{
 	 * 输出和打印日志：错误和异常
 	 * @param text
 	 */
-	public void appendEr(String text) {
-		append(text);
-		Error(text);
+	public void appendEr(String text,Throwable e) {
+		append(text+":"+e);
+		Error(text,e);
 	}
 	
 }

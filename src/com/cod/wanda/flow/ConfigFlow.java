@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import com.cod.exception.CODException;
 import com.cod.util.FileUtil;
 import com.cod.util.Log;
 import com.cod.util.PropertiesUtil;
@@ -23,15 +24,18 @@ public class ConfigFlow implements Log{
 	/**
 	 * 读取本地配置
 	 * @return
+	 * @throws CODException 
 	 */
-	public static StringMap getLocalConfig() {
+	public static StringMap getLocalConfig() throws CODException {
 		StringMap config = new StringMap();
 		Properties properties;
 		try {
+			
 			properties = PropertiesUtil.getProperties(userDir+"\\"+propertiesFileName);
 			PropertiesUtil.propertiesCopyToMap(properties, config, true);
+			//throw new IOException("shit");
 		} catch (IOException e) {
-			Log.error("获取本地配置失败，将使用默认配置",e);
+			throw new CODException("获取本地配置失败，将使用默认配置",e);
 		}
 		return config;
 	}
@@ -56,9 +60,6 @@ public class ConfigFlow implements Log{
 					return true;
 				})
 				.collect(Collectors.toList());
-		if(list.size()>0) {
-			textArea.appendEr("依赖文件不存在:"+list);
-		}
 		return list;
 	}
 	
@@ -68,16 +69,17 @@ public class ConfigFlow implements Log{
 	 * @param list
 	 * @return 
 	 * @return
+	 * @throws CODException 
 	 */
-	public static int initLocalFile(List<String> list) {
+	public static int initLocalFile(List<String> list) throws CODException {
 		Log.info("初始化本地文件:"+list);
-		list.forEach(name->{
+		for(String name:list) {
 			try {
 				FileUtil.createFile(userDir+"\\"+name);
 			} catch (IOException e) {
-				Log.error("初始化本地配置文件失败："+name,e);
+				throw new CODException("初始化本地配置文件失败："+name,e);
 			}
-		});
+		}
 		Log.info("初始化本地文件 finish");
 		return Sucess;
 	}

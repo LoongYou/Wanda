@@ -73,8 +73,8 @@ public class ExecuteFlow {
 		}
 		
 		List<IVPage> pageList = new ArrayList<>();
-		for(int i = 0;i<pageCount;i++) {
-			pageList.add(pages.itemFromID(i));
+		for(int i = 1;i<=pageCount;i++) {
+			pageList.add(pages.itemU(i));
 		}
 		lastPages = pageList;
 		return pageList;

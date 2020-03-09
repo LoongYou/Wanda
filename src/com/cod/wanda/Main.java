@@ -1,43 +1,37 @@
 package com.cod.wanda;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 import com.cod.exception.CODException;
 import com.cod.ui.general.ScrollTextArea;
-import com.cod.util.FileUtil;
 import com.cod.util.Log;
-import com.cod.util.PropertiesUtil;
+import com.cod.wanda.commons.constants.OptionCollocations.UserOptions;
+import com.cod.wanda.flow.ConfigFlow;
+import com.cod.wanda.flow.ExecuteFlow;
 import com.cod.wanda.stages.HtmlStages;
 import com.cod.wanda.stages.VisioStages;
 import com.cod.wanda.ui.MainWindow;
+import com.cod.wanda.util.Produce;
 import com.cod.wanda.util.StringMap;
 
-import visiotool.ClassFactory;
-import visiotool.IVApplication;
-import visiotool.IVDocument;
+import visiotool.IVPage;
 
 public class Main implements Log,VisioStages,HtmlStages{
 	
-	static String defProgramHome = "\\COD\\Wanda";
-	
-	static String propertiesFileName = "Wanda.properties";
-	
-	static String userDir = System.getProperty("user.dir");
-	
 	/**程序配置*/
-	private StringMap proConfig;
+	private static StringMap proConfig;
 	private static MainWindow mainWindow;
 	private static ScrollTextArea textArea;
+	
+	public static final String msg = "msg";
+	
 	
 	public static void main(String[] args) throws CODException {
 	
 		Main main = new Main();
-		main.startFlow();
+		main.startup();
 		//main.docStages(main.proConfig,main.getDocument(main.proConfig.get(UserOptions.sourceFilePath)));
 	}
 	
@@ -46,15 +40,20 @@ public class Main implements Log,VisioStages,HtmlStages{
 	 * @return
 	 * @throws CODException
 	 */
-	public void startFlow() throws CODException {
+	public void startup() throws CODException {
 		try {
 			initUi();
 			textArea.append("启动工作流 start...");
-			List<String> dependenetFiles = initDependenetFiles();
-			List<String> localFiles = checkLocalFile(dependenetFiles);
-			initLocalFile(localFiles);
-			proConfig = getLocalConfig();
+			List<String> dependenetFiles = ConfigFlow.initDependenetFiles();
+			List<String> localFiles = ConfigFlow.checkLocalFile(dependenetFiles);
+			if(localFiles.size()>0) {
+				textArea.append("依赖文件不存在:"+localFiles);
+			}
+			ConfigFlow.initLocalFile(localFiles);
+			proConfig = ConfigFlow.getLocalConfig();
 			textArea.append("启动工作流 finish...");
+		}catch(CODException e) {
+			textArea.appendEx("启动工作流异常", e);
 		}catch(Exception e) {
 			textArea.appendEx("启动工作流异常", e);
 		}
@@ -72,79 +71,51 @@ public class Main implements Log,VisioStages,HtmlStages{
 		return Sucess;
 	}
 		
-	
-	
 	/**
-	 * 读取本地配置
-	 * @return
+	 * 打开文件
+	 * @param path
+	 * @throws CODException
 	 */
-	public StringMap getLocalConfig() {
+	public static Produce<Void> openFile(String path) {
 		StringMap config = new StringMap();
-		Properties properties;
 		try {
-			properties = PropertiesUtil.getProperties(userDir+"\\"+propertiesFileName);
-			PropertiesUtil.propertiesCopyToMap(properties, config, true);
-		} catch (IOException e) {
-			Error("获取本地配置失败，将使用默认配置",e);
-		}
-		return config;
-	}
-	
-	/**
-	 * 检查本地文件,是否缺少依赖的文件，并返回缺少的文件列表
-	 * @param dependenetFileList
-	 * @return
-	 */
-	public List<String> checkLocalFile(List<String> dependenetFileList) {
-		Info("userDir=",userDir);
-		List<File> fileList = FileUtil.searchFile(userDir,"");
-		List<String> list = dependenetFileList.stream().filter(
-				name->{
-					Info("search userDir fileList......");
-					for(File file:fileList) {
-						Info(file.getName());
-						if(file.getName().equals(name)) {
-							return false;
-						}
-					}
-					return true;
-				})
-				.collect(Collectors.toList());
-		if(list.size()>0) {
-			textArea.appendEr("依赖文件不存在:"+list);
-		}
-		return list;
-	}
-	
-	
-	/**
-	 * 初始化本地文件
-	 * @param list
-	 * @return 
-	 * @return
-	 */
-	public int initLocalFile(List<String> list) {
-		Info("初始化本地文件:"+list);
-		list.forEach(name->{
-			try {
-				FileUtil.createFile(userDir+"\\"+name);
-			} catch (IOException e) {
-				Error("初始化本地配置文件失败："+name,e);
+			if(!path.endsWith(".vsd") && !path.endsWith(".vsdx")) {
+				throw new CODException("请选择.vsd或.vsdx文件");
 			}
-		});
-		Info("初始化本地文件 finish");
-		return Sucess;
+			File file = new File(path);
+			if(!file.exists() || file.isDirectory()) {
+				throw new CODException("选择的文件不是存在或者不是一个文件");
+			}
+			textArea.append("打开文件："+path);
+			proConfig.put(UserOptions.sourceFilePath, path);
+			ExecuteFlow.getDoc(proConfig);
+			return Produce.out(null,Sucess);
+		}catch(CODException e) {
+			config.put(msg, e.toString());
+			textArea.appendEr("打开文件异常", e);
+		}catch(Exception e) {
+			config.put(msg, e.toString());
+			textArea.appendEr("打开文件异常", e);
+		}
+		return Produce.out(config, null,Failed);
 	}
 	
 	/**
-	 * 初始化依赖文件列表
+	 * 获取页面信息
 	 * @return
 	 */
-	public List<String> initDependenetFiles() {
-		List<String> dependenetFiles = new ArrayList<>();
-		dependenetFiles.add(propertiesFileName);
-		return dependenetFiles;
+	public static Produce<Map<String, Integer>> getPagesInfo() {
+		StringMap config = new StringMap();
+		try {
+			List<IVPage> pages = ExecuteFlow.getPages(config);
+			Map<String, Integer> map = ExecuteFlow.getPageMap(pages);
+			return Produce.out(config, map,Sucess);
+		}catch(Exception e) {
+			Log.info(config);
+			config.put(msg, e.toString());
+			textArea.appendEr("获取页面异常", e);
+		}
+		return Produce.out(config, null,Failed);
 	}
-	
 	
 }

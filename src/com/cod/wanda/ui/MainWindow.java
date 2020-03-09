@@ -12,6 +12,7 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,18 +21,23 @@ import java.util.function.Consumer;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-
+import com.cod.util.Log;
 import com.cod.ui.general.ScrollTextArea;
+import com.cod.wanda.Main;
+import com.cod.wanda.util.Produce;
 
-public class MainWindow {
+public class MainWindow implements Log{
 	
 	/**默认风格*/
 	public static final String LookAndFeel00 = "javax.swing.plaf.metal.MetalLookAndFeel";
@@ -66,7 +72,7 @@ public class MainWindow {
 	public static final String Batch = "Batch(批量)";
 	public static final String Output = "Output(输出)";
 	public static final String Excute = "Excute(执行)";
-	public static final String Log = "Log(日志)";
+	public static final String Logging= "Logging(日志)";
 	public static final String About = "About(关于)";
 	public static final String Theme = "Theme(主题)";
 	
@@ -81,8 +87,15 @@ public class MainWindow {
 	
 	
 	public MainWindow() {
+		JOptionPane intro = new JOptionPane("Now staring Wanda......",JOptionPane.PLAIN_MESSAGE);
+		intro.setVisible(true);
+		JDialog dialog = intro.createDialog(null, "Intro");
+		dialog.setLocationRelativeTo(null);
+	    dialog.setModal(false);
+	    dialog.setVisible(true);
 		
 		frame = new JFrame();
+		frame.setTitle("Wanda V1.0");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		//设置在屏幕居中(不一定能居中)
 		frame.setLocationRelativeTo(null);	
@@ -123,7 +136,7 @@ public class MainWindow {
 		menuNameList.add(Batch);
 		menuNameList.add(Output);
 		menuNameList.add(Excute);
-		menuNameList.add(Log);
+		menuNameList.add(Logging);
 		menuNameList.add(About);
 		menuNameList.add(Theme);
 		
@@ -139,11 +152,13 @@ public class MainWindow {
 		initButtomPanel(bottomPanel);
 		initVsdsCard(cardMap.get(Vsds));
 		initBatchCard(cardMap.get(Batch));
-		initLogCard(cardMap.get(Log));
+		initLogCard(cardMap.get(Logging));
 		initThemeCard(cardMap.get(Theme));
 		
 		frame.repaint();
 		frame.setVisible(true);
+		
+		dialog.setVisible(false);
 	}
 	
 	/**
@@ -194,10 +209,81 @@ public class MainWindow {
 	 * @param vsdsCard
 	 */
 	public static void initVsdsCard(JPanel vsdsCard) {
-		JButton selectFile = createCardButton("选择文件", "请选择需要转化的visio绘图文件(vsd)或XML绘图文件(vdx)", "文件路径:");
-		JButton selectPage = createCardButton("选择页面", "请选择文件中的流程图页面进行转化", "已选择页面(默认所有)");
+		JLabel optionLabel1 = new JLabel("文件路径:");
+		JButton selectFile = createCardButton("选择文件", "请选择需要转化的visio绘图文件(vsd、vsdx)", optionLabel1);
+		JLabel optionLabel2 = new JLabel("已选择页面(默认所有)");
+		JButton selectPage = createCardButton("选择页面", "请选择文件中的流程图页面进行转化", optionLabel2);
 		vsdsCard.add(selectFile);
 		vsdsCard.add(selectPage);
+		
+		addButtomListener(selectFile, b->{
+			try {
+				File file = createFileChooser().getSelectedFile();
+				String path = file.getPath();
+				//此时必须等侦听线程执行完成后，修改操作才会生效
+				optionLabel1.setText("文件路径:"+path);
+				setupOnTop();
+				Produce<Void> produce1 = Main.openFile(path);
+				if(showMessageDialogAtFailed(vsdsCard,produce1,
+						"提示：请先关闭visio打开的vsd文件，因为只能打开一个document实例。\n"))return;
+				
+				Produce<Map<String, Integer>> produce2 = Main.getPagesInfo();
+				if(showMessageDialogAtFailed(vsdsCard,produce2,
+						"提示：这个时候请不要在visio中编辑页面。\n"))return;
+				produce2.product.forEach((pageName,index)->{
+					JButton pageButton = new JButton(pageName);
+					JButton pageButton2 = new JButton(pageName);
+					JButton pageButton3 = new JButton(pageName);
+					vsdsCard.add(pageButton);
+					vsdsCard.add(pageButton2);
+					vsdsCard.add(pageButton3);
+				});
+				cancelOnTop();
+			}catch(Exception e) {
+				Log.error(e);
+			}
+		});
+		
+		
+	}
+	
+	/**
+	 * 主界面窗口置顶
+	 */
+	public static void setupOnTop() {
+		frame.setAlwaysOnTop(true);
+	}
+	
+	/**
+	 * 取消主界面窗口置顶
+	 */
+	public static void cancelOnTop() {
+		frame.setAlwaysOnTop(false);
+	}
+	
+	/**
+	 * 根据执行某一流程返回的produce结果，如果result为Failed则弹框提示
+	 * @param com
+	 * @param produce
+	 * @param message
+	 */
+	public static boolean showMessageDialogAtFailed(JComponent com,Produce<?> produce,String message) {
+		if(produce.result==Failed) {
+			JOptionPane.showMessageDialog(com, message+"\n"+produce.config.get(Main.msg));
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * 创建文件选择器
+	 * @return
+	 */
+	public static JFileChooser createFileChooser() {
+		JFileChooser fileChooser=new JFileChooser();  
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES );  
+        fileChooser.showDialog(new JLabel(), "选择");   
+        return fileChooser;
 	}
 	
 	
@@ -206,8 +292,10 @@ public class MainWindow {
 	 * @param vsdsCard
 	 */
 	public static void initBatchCard(JPanel batchCard) {
-		JButton selectDir = createCardButton("选择目录", "请选择需要转化的visio绘图文件(vsd)或XML绘图文件(vdx)", "文件路径:");
-		JButton selectFile = createCardButton("选择文件", "请选择文件中的流程图页面进行转化", "已选择页面(默认所有)");
+		JLabel optionLabel1 = new JLabel("文件路径:");
+		JButton selectDir = createCardButton("选择目录", "请选择需要转化的visio绘图文件(vsd、vsdx)",optionLabel1);
+		JLabel optionLabel2 = new JLabel("文件路径:");
+		JButton selectFile = createCardButton("选择文件", "请选择文件中的流程图页面进行转化", optionLabel2);
 		batchCard.add(selectDir);
 		batchCard.add(selectFile);
 	}
@@ -263,24 +351,23 @@ public class MainWindow {
 	
 	/**
 	 * 创建卡片面板中的通用按钮
-	 * @param title
-	 * @param desc
-	 * @param optionName
+	 * @param title 标题
+	 * @param desc 描述
+	 * @param optionLabel 一个事先创建用于动态显示内容的文本组件
 	 * @return
 	 */
-	public static JButton createCardButton(String title,String desc,String optionName) {
+	public static JButton createCardButton(String title,String desc,JLabel optionLabel) {
 		JButton selectFile = new JButton();
 		selectFile.setLayout(new GridLayout(3,1,0,0));
 		selectFile.setPreferredSize(new Dimension(580,100));
 		JLabel titleLabel = new JLabel(title);
 		titleLabel.setFont(new Font(Font_Uniform,FontStyle_Uniform,18));
 		JLabel descLabel = new JLabel(desc);
-		JLabel pathLabel = new JLabel(optionName);
-		setUniformFont(descLabel,pathLabel);
+		setUniformFont(descLabel,optionLabel);
 		
 		selectFile.add(titleLabel);
 		selectFile.add(descLabel);
-		selectFile.add(pathLabel);
+		selectFile.add(optionLabel);
 		selectFile.setBackground(Color.WHITE);
 		return selectFile;
 	}
