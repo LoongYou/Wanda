@@ -21,6 +21,8 @@ public class ConfigFlow implements Log{
 	
 	static String userDir = System.getProperty("user.dir");
 	
+	private static String outPutDir;
+	
 	/**
 	 * 读取本地配置
 	 * @return
@@ -92,6 +94,27 @@ public class ConfigFlow implements Log{
 		List<String> dependenetFiles = new ArrayList<>();
 		dependenetFiles.add(propertiesFileName);
 		return dependenetFiles;
+	}
+	
+	/**
+	 * 设置输出文件夹
+	 * @param path
+	 * @return
+	 */
+	public static String setOutPutDir(String path) {
+		File file = new File(path);
+		if(file.exists()) {
+			if(file.isDirectory()) {				
+				ConfigFlow.outPutDir = path;
+				return "该目录已存在，里面的文件会被覆盖";
+				
+			}else {
+				return "请选择文件夹";
+			}
+		}else {
+			outPutDir = path;
+			return "该目录将会被创建";
+		}
 	}
 	
 }

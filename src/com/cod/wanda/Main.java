@@ -3,6 +3,7 @@ package com.cod.wanda;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import com.cod.exception.CODException;
 import com.cod.ui.general.ScrollTextArea;
@@ -117,5 +118,30 @@ public class Main implements Log,VisioStages,HtmlStages{
 		}
 		return Produce.out(config, null,Failed);
 	}
+	
+	/**
+	 * 设置输出文件夹
+	 * @param path
+	 * @return
+	 */
+	public static Produce<Void> setOutPutDir(String path) {
+		StringMap config = new StringMap();
+		config.put(msg, ConfigFlow.setOutPutDir(path));
+		return Produce.out(config,null,Sucess);
+	}
+	
+	public static Produce<Void> executeVsds(){
+		StringMap config = new StringMap();
+		try {
+			ExecuteFlow.executeVsds();
+
+		}catch(Exception | CODException e) {
+			config.put(msg, e.toString());
+			textArea.appendEr("打开文件异常", e);
+		}
+		return Produce.out(config, null,Failed);
+		
+	}
+	
 	
 }

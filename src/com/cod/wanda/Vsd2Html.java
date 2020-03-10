@@ -46,7 +46,7 @@ public class Vsd2Html {
 				Element root = xmlDoc.addElement("page");
 				try {
 					// 只读取Visio文档中第一个页面的信息
-					IVPage page = doc.pages().itemU(2);
+					IVPage page = doc.pages().itemU(1);
 					// 读取Page对象的长和宽，并转化为像素单位（乘以96）
 					root.addAttribute("宽：", "" + ((int) (page.pageSheet().cells("PageWidth").resultIU() * 96)));
 					root.addAttribute("高：", "" + ((int) (page.pageSheet().cells("PageHeight").resultIU() * 96)));
@@ -55,7 +55,7 @@ public class Vsd2Html {
 					IVShapes shapes = page.shapes();
 					System.out.println("保存页面:"+page.name());
 					//将页面保存为svg矢量图片，保证放大不会失真
-					//page.export(outputDir + "\\" + page.name() + ".svg");
+					page.export(outputDir + "\\" + page.name() + ".svg");
 					
 					System.out.println("shapes=" + shapes.count());
 					// 遍历该Page对象中所有的Shape对象

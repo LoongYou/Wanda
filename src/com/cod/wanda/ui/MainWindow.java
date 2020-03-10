@@ -66,15 +66,20 @@ public class MainWindow implements Log{
 	static final int FontStyle_Uniform = Font.PLAIN;
 	static final int FontSize_Uniform = 12;
 	
+	
 	/*菜单名常量*/
 	public static final String Profile = "Profile(配置)";
 	public static final String Vsds = "Vsds(文件)";
 	public static final String Batch = "Batch(批量)";
 	public static final String Output = "Output(输出)";
-	public static final String Excute = "Excute(执行)";
+	public static final String Execute = "Execute(执行)";
 	public static final String Logging= "Logging(日志)";
 	public static final String About = "About(关于)";
 	public static final String Theme = "Theme(主题)";
+	
+	public static final String SelectedPage = "selectedPage";
+	public static final String UnSelectedPage = "unSelectedPage";
+	
 	
 	static JFrame frame;
 	public static ScrollTextArea logTextArea;
@@ -135,7 +140,7 @@ public class MainWindow implements Log{
 		menuNameList.add(Vsds);
 		menuNameList.add(Batch);
 		menuNameList.add(Output);
-		menuNameList.add(Excute);
+		menuNameList.add(Execute);
 		menuNameList.add(Logging);
 		menuNameList.add(About);
 		menuNameList.add(Theme);
@@ -152,6 +157,8 @@ public class MainWindow implements Log{
 		initButtomPanel(bottomPanel);
 		initVsdsCard(cardMap.get(Vsds));
 		initBatchCard(cardMap.get(Batch));
+		initOutputCard(cardMap.get(Output));
+		initExecuteCard(cardMap.get(Execute));
 		initLogCard(cardMap.get(Logging));
 		initThemeCard(cardMap.get(Theme));
 		
@@ -219,6 +226,7 @@ public class MainWindow implements Log{
 		addButtomListener(selectFile, b->{
 			try {
 				File file = createFileChooser().getSelectedFile();
+				if(file==null) return;
 				String path = file.getPath();
 				//此时必须等侦听线程执行完成后，修改操作才会生效
 				optionLabel1.setText("文件路径:"+path);
@@ -230,22 +238,123 @@ public class MainWindow implements Log{
 				Produce<Map<String, Integer>> produce2 = Main.getPagesInfo();
 				if(showMessageDialogAtFailed(vsdsCard,produce2,
 						"提示：这个时候请不要在visio中编辑页面。\n"))return;
-				produce2.product.forEach((pageName,index)->{
-					JButton pageButton = new JButton(pageName);
-					JButton pageButton2 = new JButton(pageName);
-					JButton pageButton3 = new JButton(pageName);
+				Map<String, Integer> pageMap = produce2.product;
+				if(pageMap.size()>0) {
+					JButton selectBotton = new JButton("取消全选");//TODO
+					selectPage.add(selectBotton);
+				}
+				pageMap.forEach((pageName,index)->{
+					JButton pageButton = createToggleButton(pageName,
+							SelectedPage,UnSelectedPage,Color.WHITE,new Color(212, 212, 212, 212));
 					vsdsCard.add(pageButton);
-					vsdsCard.add(pageButton2);
-					vsdsCard.add(pageButton3);
 				});
 				cancelOnTop();
 			}catch(Exception e) {
 				Log.error(e);
 			}
 		});
-		
-		
 	}
+	
+
+	/**
+	 * 初始化BatchCard
+	 * @param vsdsCard
+	 */
+	public static void initBatchCard(JPanel batchCard) {
+		JLabel optionLabel1 = new JLabel("文件路径:");
+		JButton selectDir = createCardButton("选择目录", "请选择需要转化的visio绘图文件(vsd、vsdx)",optionLabel1);
+		JLabel optionLabel2 = new JLabel("文件路径:");
+		JButton selectFile = createCardButton("选择文件", "请选择文件中的流程图页面进行转化", optionLabel2);
+		batchCard.add(selectDir);
+		batchCard.add(selectFile);
+	}
+	
+	/**
+	 * 初始化OutputCard
+	 * @param outputCard
+	 */
+	public static void initOutputCard(JPanel outputCard) {
+		JLabel optionLabel1 = new JLabel("");
+		JButton vsds = createCardButton("另存为", "设置本次转化输出文件到指定的目录",optionLabel1);
+		JLabel optionLabel2 = new JLabel("");
+		JButton batch = createCardButton("设置输出文件夹", "转化的文件默认保存路径", optionLabel2);
+		outputCard.add(vsds);
+		outputCard.add(batch);
+		addButtomListener(vsds, b->{
+			File file = createFileChooser().getSelectedFile();
+			if(file==null) return;
+			String path = file.getPath();
+			Produce<Void> produce1 = Main.setOutPutDir(path);
+			if(showMessageDialogAtFailed(outputCard,produce1,""))return;
+			optionLabel1.setText(produce1.config.get(Main.msg)+":"+path);
+		});
+	}
+
+	/**
+	 * 初始化ExecuteCard
+	 * @param executeCard
+	 */
+	public static void initExecuteCard(JPanel executeCard) {
+		JLabel optionLabel1 = new JLabel("");
+		JButton vsds = createCardButton("单个文件", "将会转化单个的文件中选定的页面",optionLabel1);
+		JLabel optionLabel2 = new JLabel("");
+		JButton batch = createCardButton("批量文件", "将会对批量选择的文件的所有页面进行转化", optionLabel2);
+		executeCard.add(vsds);
+		executeCard.add(batch);
+	}
+	
+
+	/**
+	 * 初始化LogCard
+	 * @param logCard
+	 */
+	public static void initLogCard(JPanel logCard) {
+		
+		logTextArea = new ScrollTextArea();
+		logTextArea.setPreferredSize(new Dimension(450,230));
+		logTextArea.setRows(8);
+		setUniformFont(logTextArea);
+		logCard.add(logTextArea);
+		logTextArea.append("\nUI初始化完成");
+	}
+
+
+	public static void initThemeCard(JPanel themeCard) {
+		for(String theme:Themes) {
+			JButton button = new JButton();
+			button.setPreferredSize(new Dimension(250,25));
+			button.setName(theme);
+			button.setText(theme);
+			themeCard.add(button);
+			addButtomListener(button, b->{
+				changeTheme(button.getName(),frame);
+			});
+		}
+	}
+
+
+	/**
+	 * 
+	 * @param text
+	 * @return
+	 */
+	public static JButton createToggleButton(String text,String name1,String name2,Color color1,Color color2) {
+		JButton pageButton = new JButton(text);
+		setUniformFont(pageButton);
+		pageButton.setName(name1);
+		pageButton.setBackground(color1);
+		addButtomListener(pageButton, b->{
+			if(b.getName().equals(name1)) {
+				b.setName(name2);
+				b.setBackground(new Color(212, 212, 212, 212));
+			}else {
+				pageButton.setName(name1);
+				pageButton.setBackground(color1);
+			}
+		});
+		return pageButton;
+	}
+	
 	
 	/**
 	 * 主界面窗口置顶
@@ -269,7 +378,7 @@ public class MainWindow implements Log{
 	 */
 	public static boolean showMessageDialogAtFailed(JComponent com,Produce<?> produce,String message) {
 		if(produce.result==Failed) {
-			JOptionPane.showMessageDialog(com, message+"\n"+produce.config.get(Main.msg));
+			JOptionPane.showMessageDialog(com, produce.config.get(Main.msg)+"\n"+message);
 			return true;
 		}
 		return false;
@@ -286,47 +395,6 @@ public class MainWindow implements Log{
         return fileChooser;
 	}
 	
-	
-	/**
-	 * 初始化BatchCard
-	 * @param vsdsCard
-	 */
-	public static void initBatchCard(JPanel batchCard) {
-		JLabel optionLabel1 = new JLabel("文件路径:");
-		JButton selectDir = createCardButton("选择目录", "请选择需要转化的visio绘图文件(vsd、vsdx)",optionLabel1);
-		JLabel optionLabel2 = new JLabel("文件路径:");
-		JButton selectFile = createCardButton("选择文件", "请选择文件中的流程图页面进行转化", optionLabel2);
-		batchCard.add(selectDir);
-		batchCard.add(selectFile);
-	}
-	
-	/**
-	 * 初始化LogCard
-	 * @param logCard
-	 */
-	public static void initLogCard(JPanel logCard) {
-		
-		logTextArea = new ScrollTextArea();
-		logTextArea.setPreferredSize(new Dimension(450,230));
-		logTextArea.setRows(8);
-		setUniformFont(logTextArea);
-		logCard.add(logTextArea);
-		logTextArea.append("\nUI初始化完成");
-	}
-	
-	
-	public static void initThemeCard(JPanel themeCard) {
-		for(String theme:Themes) {
-			JButton button = new JButton();
-			button.setPreferredSize(new Dimension(250,25));
-			button.setName(theme);
-			button.setText(theme);
-			themeCard.add(button);
-			addButtomListener(button, b->{
-				changeTheme(button.getName(),frame);
-			});
-		}
-	}
 	
 	/**
 	 * 改变主题
@@ -487,7 +555,7 @@ public class MainWindow implements Log{
 					addButtomListener(menu, m->{
 						cardLayout.show(cardPanel, m.getName());
 						m.setBackground(Color.WHITE);
-						togoMenuChangeStyle(m.getName(), otherMenu->{
+						toggleMenuChangeStyle(m.getName(), otherMenu->{
 							otherMenu.setBackground(new Color(212, 212, 212, 212));
 						});
 					});
@@ -558,7 +626,7 @@ public class MainWindow implements Log{
 	 * @param menuName
 	 * @param bfunc
 	 */
-	public static void togoMenuChangeStyle(String menuName,Consumer<JButton> bfunc) {
+	public static void toggleMenuChangeStyle(String menuName,Consumer<JButton> bfunc) {
 		if(menuList==null || menuName==null) {
 			return;
 		}
