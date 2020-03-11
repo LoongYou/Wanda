@@ -120,22 +120,42 @@ public class Main implements Log,VisioStages,HtmlStages{
 	}
 	
 	/**
+	 * 设置默认输出文件夹
+	 * @param path
+	 * @return
+	 */
+	public static Produce<Void> setdefaultOutPutDir(String path) {
+		StringMap config = new StringMap();
+		config.put(msg, ConfigFlow.setDefOutPutDir(path));
+		return Produce.out(config,null,Sucess);
+	}
+	
+	/**
 	 * 设置输出文件夹
 	 * @param path
 	 * @return
 	 */
 	public static Produce<Void> setOutPutDir(String path) {
 		StringMap config = new StringMap();
-		config.put(msg, ConfigFlow.setOutPutDir(path));
+		config.put(msg, ConfigFlow.setDir(null,path));
+		proConfig.put(UserOptions.outPutDir,path);
 		return Produce.out(config,null,Sucess);
 	}
 	
+	
+	/**
+	 * 执行单个vsd文件转化
+	 * @return
+	 */
 	public static Produce<Void> executeVsds(){
 		StringMap config = new StringMap();
 		try {
-			ExecuteFlow.executeVsds();
+			ExecuteFlow.saveVisioToSvg(proConfig.get(UserOptions.outPutDir));
 
-		}catch(Exception | CODException e) {
+		}catch(CODException e) {
+			config.put(msg, e.toString());
+			textArea.appendEr("打开文件异常", e);
+		}catch(Exception e) {
 			config.put(msg, e.toString());
 			textArea.appendEr("打开文件异常", e);
 		}

@@ -277,9 +277,10 @@ public class MainWindow implements Log{
 		JLabel optionLabel1 = new JLabel("");
 		JButton vsds = createCardButton("另存为", "设置本次转化输出文件到指定的目录",optionLabel1);
 		JLabel optionLabel2 = new JLabel("");
-		JButton batch = createCardButton("设置输出文件夹", "转化的文件默认保存路径", optionLabel2);
+		JButton def = createCardButton("设置输出文件夹", "转化的文件默认保存路径", optionLabel2);
 		outputCard.add(vsds);
-		outputCard.add(batch);
+		outputCard.add(def);
+		
 		addButtomListener(vsds, b->{
 			File file = createFileChooser().getSelectedFile();
 			if(file==null) return;
@@ -287,6 +288,15 @@ public class MainWindow implements Log{
 			Produce<Void> produce1 = Main.setOutPutDir(path);
 			if(showMessageDialogAtFailed(outputCard,produce1,""))return;
 			optionLabel1.setText(produce1.config.get(Main.msg)+":"+path);
+		});
+		
+		addButtomListener(def, b->{
+			File file = createFileChooser().getSelectedFile();
+			if(file==null) return;
+			String path = file.getPath();
+			Produce<Void> produce2 = Main.setdefaultOutPutDir(path);
+			if(showMessageDialogAtFailed(outputCard,produce2,""))return;
+			optionLabel2.setText(produce2.config.get(Main.msg)+":"+path);
 		});
 	}
 
@@ -301,6 +311,11 @@ public class MainWindow implements Log{
 		JButton batch = createCardButton("批量文件", "将会对批量选择的文件的所有页面进行转化", optionLabel2);
 		executeCard.add(vsds);
 		executeCard.add(batch);
+		
+		addButtomListener(vsds, b->{
+			Produce<Void> produce1 = Main.executeVsds();
+			if(showMessageDialogAtFailed(executeCard,produce1,""))return;
+		});
 	}
 	
 

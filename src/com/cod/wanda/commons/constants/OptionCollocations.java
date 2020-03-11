@@ -21,6 +21,8 @@ public class OptionCollocations extends Collocations{
 		String sourceFilePath = createKey("sourceFilePath");
 		/**输出路径*/
 		String outPutDir = createKey("outPutDir");
+		/**默认输出路径*/
+		String defOutPutDir = createKey("defOutPutDir");
 		
 		/**处理的页面*/
 		String applyPage = createKey("applyPage");

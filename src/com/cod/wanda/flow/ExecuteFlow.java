@@ -1,16 +1,21 @@
 package com.cod.wanda.flow;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 import com.cod.exception.CODException;
+import com.cod.functions.Text;
+import com.cod.util.FileUtil;
 import com.cod.util.Log;
 import com.cod.util.RSC;
 import com.cod.wanda.commons.constants.FieldCollocations.Doc;
+import com.cod.wanda.commons.constants.FieldCollocations.HtmlPage;
 import com.cod.wanda.commons.constants.FieldCollocations.Shape;
 import com.cod.wanda.commons.constants.OptionCollocations.UserOptions;
+import com.cod.wanda.util.Produce;
 import com.cod.wanda.util.StringMap;
 
 import visiotool.ClassFactory;
@@ -31,6 +36,8 @@ public class ExecuteFlow {
 	private static List<IVPage> lastPages;
 	public static final String Swimlane_vertical= "Swimlane (vertical)";
 	public static final String Separator_vertical= "Separator (vertical)";
+	public static final String javascriptVarsAnchor = "//javascriptVarsAnchor";
+	public static final String svgContentAnchor = "<!-- svgContentAnchor -->";
 	
 	/**
 	 * 获取visio文档对象
@@ -111,16 +118,21 @@ public class ExecuteFlow {
 	public static List<Integer> getVisioSwimlanShapMIDList(IVPage page) {
 		//获取page下的所有shape
 		IVShapes shapes = page.shapes();
-		List<Integer> Swimlane_verticals = new ArrayList<>();
+		int shapeCount = shapes.count();
+		Log.info("shapeCount="+shapeCount);
+		List<Integer> swimlane_verticals = new ArrayList<>();
 		// 遍历该Page对象中所有的Shape对象
-		for (int shapeCount = 1; shapeCount <= shapes.count(); shapeCount++) {
-			IVShape shape = shapes.itemU(shapeCount);
+		for (int i = 1; i <= shapeCount; i++) {
+			IVShape shape = shapes.itemU(i);
 			StringMap shapeInfo = getVisioShapeInfo(shape);
-			if(Swimlane_vertical.equals(shapeInfo.get(Shape.nameU))) {
-				Swimlane_verticals.add(Integer.parseInt(shapeInfo.get(Shape.id)));
+			String nameU = shapeInfo.get(Shape.nameU);
+			if(nameU.startsWith(Swimlane_vertical) && 
+					(shapeInfo.get(Shape.id).equals("1") || nameU.length()>Swimlane_vertical.length())) {
+				Log.info("get swimlane_verticals="+shapeInfo.get(Shape.id));
+				swimlane_verticals.add(Integer.parseInt(shapeInfo.get(Shape.id)));
 			}
 		}
-		return Swimlane_verticals;
+		return swimlane_verticals;
 	}
 	
 	/**
@@ -131,12 +143,17 @@ public class ExecuteFlow {
 	public static List<Integer> getVisioPhaseShapMIDlist(IVPage page) {
 		//获取page下的所有shape
 		IVShapes shapes = page.shapes();
+		int shapeCount = shapes.count();
+		Log.info("shapeCount="+shapeCount);
 		List<Integer> separator_verticals = new ArrayList<>();
 		// 遍历该Page对象中所有的Shape对象
-		for (int shapeCount = 1; shapeCount <= shapes.count(); shapeCount++) {
-			IVShape shape = shapes.itemU(shapeCount);
+		for (int i = 1; i <= shapeCount; i++) {
+			IVShape shape = shapes.itemU(i);
 			StringMap shapeInfo = getVisioShapeInfo(shape);
-			if(Separator_vertical.equals(shapeInfo.get(Shape.nameU))) {
+			String nameU = shapeInfo.get(Shape.nameU);
+			if(nameU.startsWith(Separator_vertical) && 
+					(shapeInfo.get(Shape.id).equals("1") || nameU.length()>Separator_vertical.length())) {
+				Log.info("get separator_verticals="+shapeInfo.get(Shape.id));
 				separator_verticals.add(Integer.parseInt(shapeInfo.get(Shape.id)));
 			}
 		}
@@ -183,17 +200,100 @@ public class ExecuteFlow {
 	}
 	
 	
-	public static int executeVsds() throws CODException {		
-		if (lastPages == null || lastPages.size() == 0) {
-			throw new CODException("lastPages is empty");
-		}
-		for (IVPage page : lastPages) {
-			List<Integer> list1 = getVisioSwimlanShapMIDList(page);
-			Log.info(list1);
-			List<Integer> list2 = getVisioPhaseShapMIDlist(page);
-			Log.info(list2);
-		}
-		return RSC.Sucess;
+	/**
+	 * 工序：将参数或标签文本插入到html文本指定位置中
+	 * @param config
+	 * @param html
+	 * @return
+	 */
+	public static String htmlPageStage(StringMap config,String html){
+		StringMap htmlPageConfig = new StringMap();
+		htmlPageConfig.put(javascriptVarsAnchor, config.get(HtmlPage.javascriptVars));
+		htmlPageConfig.put(svgContentAnchor, config.get(HtmlPage.visioSvgContent));
+		Text.Insert.StringMap.apply(html, htmlPageConfig);
+		return Text.Insert.StringMap.apply(html, htmlPageConfig);
 	}
+	
+	/**
+	 * 计算一个页面中的泳道标题id
+	 * 
+	 * @param page
+	 * @return
+	 */
+	public static List<Integer> computeSwimlanTitleIndex(IVPage page) {
+		List<Integer> list = getVisioSwimlanShapMIDList(page);
+		Log.info(list);
+		List<Integer> comlist = new ArrayList<>();
+		list.forEach(id -> {
+			comlist.add(Integer.sum(id.intValue(), 2));
+		});
+		return comlist;
+	}
+
+	/**
+	 * 计算一个页面中的阶段标题id
+	 * 
+	 * @param page
+	 * @return
+	 */
+	public static List<Integer> computePhaseTitleIndex(IVPage page) {
+		List<Integer> list = getVisioPhaseShapMIDlist(page);
+		Log.info(list);
+		List<Integer> comlist = new ArrayList<>();
+		list.forEach(id -> {
+			comlist.add(Integer.sum(id.intValue(), 2));
+		});
+		return comlist;
+	}
+
+	/**
+	 * 构建一个html页面中JavaScript脚本使用的变量定义字符串
+	 * @param page
+	 * @return
+	 */
+	public static String buildJavaScriptVar(IVPage page) {
+		List<Integer> list1 = computeSwimlanTitleIndex(page);
+		List<Integer> list2 = computePhaseTitleIndex(page);	
+		String var1 = "var visioSwimlanShapMIDList = "+list1.toString();
+		String var2 = "var visioPhaseShapMIDlist = "+list2.toString();
+		Log.info(var1);
+		Log.info(var2);
+		StringBuilder sb = new StringBuilder();
+		sb.append(var1).append(";\n").append(var2).append(";\n");
+		return sb.toString();
+	}
+	
+	
+	public static int saveVisioToSvg(String dir) throws CODException, IOException {
+		 if (lastPages == null || lastPages.size() == 0) {
+				 throw new CODException("lastPages is empty");
+		}
+		 if(lastDoc==null) {
+			 throw new CODException("doc is null");
+		 }
+		 String docName = lastDoc.name();
+		 String dirName = null;
+		 if(docName.endsWith(".vsd")) {			 
+			 dirName = docName.substring(0,docName.indexOf(".vsd"));
+		 }
+		 if(docName.endsWith(".vsdx")) {
+			 dirName = docName.substring(0,docName.indexOf(".vsdx"));
+		 }
+		 
+		 //在输出目录中创建源vsd文件对应的文件夹
+		 String svgDir = dir+"\\"+dirName+"\\svg\\";
+		 Log.info("svgDir="+svgDir);
+		 FileUtil.createDir(svgDir);
+		 for(IVPage page:lastPages) {
+			 String svgFile = svgDir + "\\" + page.name() + ".svg";
+			 Log.info(svgFile);
+			 //将当前page保存为svg到对应的目录下
+			 page.export(svgFile);
+			 String javaScriptVar = buildJavaScriptVar(page);
+			 Log.info(javaScriptVar);
+		 }
+		 return Log.Sucess;
+	}
+	
 	
 }
