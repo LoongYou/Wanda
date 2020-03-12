@@ -3,7 +3,6 @@ package com.cod.wanda;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 import com.cod.exception.CODException;
 import com.cod.ui.general.ScrollTextArea;
@@ -11,15 +10,13 @@ import com.cod.util.Log;
 import com.cod.wanda.commons.constants.OptionCollocations.UserOptions;
 import com.cod.wanda.flow.ConfigFlow;
 import com.cod.wanda.flow.ExecuteFlow;
-import com.cod.wanda.stages.HtmlStages;
-import com.cod.wanda.stages.VisioStages;
 import com.cod.wanda.ui.MainWindow;
 import com.cod.wanda.util.Produce;
 import com.cod.wanda.util.StringMap;
 
 import visiotool.IVPage;
 
-public class Main implements Log,VisioStages,HtmlStages{
+public class Main implements Log{
 	
 	/**程序配置*/
 	private static StringMap proConfig;
@@ -151,7 +148,7 @@ public class Main implements Log,VisioStages,HtmlStages{
 		StringMap config = new StringMap();
 		try {
 			ExecuteFlow.saveVisioToSvg(proConfig.get(UserOptions.outPutDir));
-
+			return Produce.out(config, null,Sucess);
 		}catch(CODException e) {
 			config.put(msg, e.toString());
 			textArea.appendEr("打开文件异常", e);

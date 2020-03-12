@@ -19,7 +19,10 @@ public class ConfigFlow implements Log{
 	
 	static String propertiesFileName = "Wanda.properties";
 	
-	static String userDir = System.getProperty("user.dir");
+	/**当前jar执行时所在的目录*/
+	public static final String userDir = System.getProperty("user.dir");
+	
+	public static final String pageModulePath = "\\page\\SingleSvgPageModule.html";
 	
 	private static String defOutPutDir;
 	

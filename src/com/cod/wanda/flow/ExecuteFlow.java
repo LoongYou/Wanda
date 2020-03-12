@@ -1,5 +1,6 @@
 package com.cod.wanda.flow;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,12 +11,10 @@ import com.cod.exception.CODException;
 import com.cod.functions.Text;
 import com.cod.util.FileUtil;
 import com.cod.util.Log;
-import com.cod.util.RSC;
 import com.cod.wanda.commons.constants.FieldCollocations.Doc;
 import com.cod.wanda.commons.constants.FieldCollocations.HtmlPage;
 import com.cod.wanda.commons.constants.FieldCollocations.Shape;
 import com.cod.wanda.commons.constants.OptionCollocations.UserOptions;
-import com.cod.wanda.util.Produce;
 import com.cod.wanda.util.StringMap;
 
 import visiotool.ClassFactory;
@@ -36,15 +35,24 @@ public class ExecuteFlow {
 	private static List<IVPage> lastPages;
 	public static final String Swimlane_vertical= "Swimlane (vertical)";
 	public static final String Separator_vertical= "Separator (vertical)";
-	public static final String javascriptVarsAnchor = "//javascriptVarsAnchor";
-	public static final String svgContentAnchor = "<!-- svgContentAnchor -->";
+	public static final String JavascriptVarsAnchor = "//javascriptVarsAnchor";
+	public static final String SvgContentAnchor = "<!-- svgContentAnchor -->";
+	
+	/**正在执行的信号量 0：空闲  1：正在执行，此时某些流程或交互务必阻塞或降级*/
+	private volatile static int executeFlag;
+	public static final int Standy = 0;
+	public static final int Executing = 1;
 	
 	/**
 	 * 获取visio文档对象
 	 * @param config
 	 * @return
+	 * @throws CODException 
 	 */
-	public static IVDocument getDoc(StringMap config) {
+	public static IVDocument getDoc(StringMap config) throws CODException {
+		if(executeFlag==1) {
+			throw new CODException("程序 正忙");
+		}
 		StringMap docConfig = new StringMap();
 		String path = config.get(UserOptions.sourceFilePath);
 		if(lastPath==null) {
@@ -208,8 +216,8 @@ public class ExecuteFlow {
 	 */
 	public static String htmlPageStage(StringMap config,String html){
 		StringMap htmlPageConfig = new StringMap();
-		htmlPageConfig.put(javascriptVarsAnchor, config.get(HtmlPage.javascriptVars));
-		htmlPageConfig.put(svgContentAnchor, config.get(HtmlPage.visioSvgContent));
+		htmlPageConfig.put(JavascriptVarsAnchor, config.get(HtmlPage.javascriptVars));
+		htmlPageConfig.put(SvgContentAnchor, config.get(HtmlPage.visioSvgContent));
 		Text.Insert.StringMap.apply(html, htmlPageConfig);
 		return Text.Insert.StringMap.apply(html, htmlPageConfig);
 	}
@@ -263,36 +271,70 @@ public class ExecuteFlow {
 		return sb.toString();
 	}
 	
-	
-	public static int saveVisioToSvg(String dir) throws CODException, IOException {
-		 if (lastPages == null || lastPages.size() == 0) {
-				 throw new CODException("lastPages is empty");
+	/**
+	 * 将当前选择的页面导出为svg，并内联到html文件后另存
+	 * @param dir 输出文件夹路径
+	 * @return
+	 * @throws CODException
+	 * @throws IOException
+	 */
+	public static void saveVisioToSvg(String dir) throws CODException, IOException {
+		try {
+			if (executeFlag == Executing) {
+				throw new CODException("程序 正忙");
+			}
+			if (lastPages == null || lastPages.size() == 0) {
+				throw new CODException("lastPages is empty");
+			}
+			if (lastDoc == null) {
+				throw new CODException("doc is null");
+			}
+			String docName = lastDoc.name();
+			String dirName = null;
+			if (docName.endsWith(".vsd")) {
+				dirName = docName.substring(0, docName.indexOf(".vsd"));
+			}
+			if (docName.endsWith(".vsdx")) {
+				dirName = docName.substring(0, docName.indexOf(".vsdx"));
+			}
+			// 在输出目录中创建源vsd文件对应的文件夹
+			String svgDir = dir + "\\" + dirName + "\\svg\\";
+			String htmlDir = dir + "\\" + dirName + "\\html\\";
+			Log.info("svgDir=" + svgDir);
+			// 创建svg文件夹
+			FileUtil.createDir(svgDir);
+			// 创建html文件夹
+			FileUtil.createDir(htmlDir);
+			executeFlag = Executing;
+			// 耗时操作，综合考虑还是暂定hold线程，因为桌面程序多线程会大大增加交互控制复杂度
+			for (IVPage page : lastPages) {
+				String svgFilePath = svgDir + "\\" + page.name() + ".svg";
+				String htmlFilePath = htmlDir + "\\" + page.name() + ".html";
+				Log.info(svgFilePath);
+				// 将当前page保存为svg到对应的目录下
+				page.export(svgFilePath);
+				// 生成参数
+				String javaScriptVar = buildJavaScriptVar(page);
+				Log.info(javaScriptVar);
+				// 读取已导出的svg文件
+				String svgContent = FileUtil.readBufferByLine(new File(svgFilePath));
+				Log.debug(svgContent);
+				// 读取html模板
+				String htmlContent = FileUtil.readBufferByLine(new File(ConfigFlow.userDir + ConfigFlow.pageModulePath));
+				//Log.debug(htmlContent);
+				// 插入参数和元素
+				StringMap config = new StringMap();
+				config.put(HtmlPage.javascriptVars, javaScriptVar);
+				config.put(HtmlPage.visioSvgContent, svgContent);
+				String html = htmlPageStage(config, htmlContent);
+				//Log.debug(html);
+				FileUtil.createFile(htmlFilePath);
+				//写入html
+				FileUtil.write(new File(htmlFilePath), html);
+			}
+		} finally {
+			executeFlag = Standy;
 		}
-		 if(lastDoc==null) {
-			 throw new CODException("doc is null");
-		 }
-		 String docName = lastDoc.name();
-		 String dirName = null;
-		 if(docName.endsWith(".vsd")) {			 
-			 dirName = docName.substring(0,docName.indexOf(".vsd"));
-		 }
-		 if(docName.endsWith(".vsdx")) {
-			 dirName = docName.substring(0,docName.indexOf(".vsdx"));
-		 }
-		 
-		 //在输出目录中创建源vsd文件对应的文件夹
-		 String svgDir = dir+"\\"+dirName+"\\svg\\";
-		 Log.info("svgDir="+svgDir);
-		 FileUtil.createDir(svgDir);
-		 for(IVPage page:lastPages) {
-			 String svgFile = svgDir + "\\" + page.name() + ".svg";
-			 Log.info(svgFile);
-			 //将当前page保存为svg到对应的目录下
-			 page.export(svgFile);
-			 String javaScriptVar = buildJavaScriptVar(page);
-			 Log.info(javaScriptVar);
-		 }
-		 return Log.Sucess;
 	}
 	
 	
