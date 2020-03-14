@@ -28,7 +28,7 @@ public class Vsd2Html {
 		// TODO Auto-generated method stub
 
 				//vsd vsdx文件路径
-				String filePath = "D:\\javaTest\\demo.vsdx";
+				String filePath = "D:\\javaTest\\demo - 副本.vsdx";
 				//输出文件夹
 				String outputDir = "D:\\javaTest\\output";
 				

@@ -134,8 +134,7 @@ public class ExecuteFlow {
 			IVShape shape = shapes.itemU(i);
 			StringMap shapeInfo = getVisioShapeInfo(shape);
 			String nameU = shapeInfo.get(Shape.nameU);
-			if(nameU.startsWith(Swimlane_vertical) && 
-					(shapeInfo.get(Shape.id).equals("1") || nameU.length()>Swimlane_vertical.length())) {
+			if(nameU.startsWith(Swimlane_vertical)) {
 				Log.info("get swimlane_verticals="+shapeInfo.get(Shape.id));
 				swimlane_verticals.add(Integer.parseInt(shapeInfo.get(Shape.id)));
 			}
@@ -159,8 +158,7 @@ public class ExecuteFlow {
 			IVShape shape = shapes.itemU(i);
 			StringMap shapeInfo = getVisioShapeInfo(shape);
 			String nameU = shapeInfo.get(Shape.nameU);
-			if(nameU.startsWith(Separator_vertical) && 
-					(shapeInfo.get(Shape.id).equals("1") || nameU.length()>Separator_vertical.length())) {
+			if(nameU.startsWith(Separator_vertical)) {
 				Log.info("get separator_verticals="+shapeInfo.get(Shape.id));
 				separator_verticals.add(Integer.parseInt(shapeInfo.get(Shape.id)));
 			}
@@ -331,6 +329,7 @@ public class ExecuteFlow {
 				FileUtil.createFile(htmlFilePath);
 				//写入html
 				FileUtil.write(new File(htmlFilePath), html);
+				Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler "+htmlFilePath);
 			}
 		} finally {
 			executeFlag = Standy;

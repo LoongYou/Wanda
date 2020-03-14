@@ -50,6 +50,9 @@ public class MainWindow implements Log{
 	public static final String LookAndFeel07 = UIManager.getCrossPlatformLookAndFeelClassName();//可跨平台的默认风格
 	public static final String LookAndFeel08 = UIManager.getSystemLookAndFeelClassName();//当前系统的风格
 	
+	/**
+	 * 主题列表
+	 */
 	static final String[] Themes = {
 			LookAndFeel00,
 			LookAndFeel01,
@@ -62,8 +65,11 @@ public class MainWindow implements Log{
 			LookAndFeel08,
 	};
 	
+	/**统一字体*/
 	static final String Font_Uniform = "宋体";
+	/**统一字体样式*/
 	static final int FontStyle_Uniform = Font.PLAIN;
+	/**统一字体大小*/
 	static final int FontSize_Uniform = 12;
 	
 	
@@ -76,15 +82,23 @@ public class MainWindow implements Log{
 	public static final String Logging= "Logging(日志)";
 	public static final String About = "About(关于)";
 	public static final String Theme = "Theme(主题)";
-	
+	/**选中的页面按钮标识*/
 	public static final String SelectedPage = "selectedPage";
+	/**未选中的页面按钮标识*/
 	public static final String UnSelectedPage = "unSelectedPage";
 	
-	
+	/**主窗体*/
 	static JFrame frame;
+	/**日志文本域*/
 	public static ScrollTextArea logTextArea;
+	/**底部文本域*/
 	public static JTextArea bottomTextArea;
+	/**菜单按钮列表*/
 	static List<JButton> menuList;
+	/**提示弹框文案*/
+	static JLabel tipLabel;
+	/**提示弹框*/
+	static JDialog tipDialog;
 	
 	public static void main(String[] args) {
 		new MainWindow();
@@ -92,12 +106,9 @@ public class MainWindow implements Log{
 	
 	
 	public MainWindow() {
-		JOptionPane intro = new JOptionPane("Now staring Wanda......",JOptionPane.PLAIN_MESSAGE);
-		intro.setVisible(true);
-		JDialog dialog = intro.createDialog(null, "Intro");
-		dialog.setLocationRelativeTo(null);
-	    dialog.setModal(false);
-	    dialog.setVisible(true);
+		
+		initTopTip();
+		showTopTip("Now starting Wanda");
 		
 		frame = new JFrame();
 		frame.setTitle("Wanda V1.0");
@@ -105,7 +116,7 @@ public class MainWindow implements Log{
 		//设置在屏幕居中(不一定能居中)
 		frame.setLocationRelativeTo(null);	
 				/*
-				 * 设置窗口在屏幕居中备选兼容方案
+				 * 设置窗口在屏幕居中兼容方案
 				 * int DIALOG_WHITE = 400; int DIALOG_HEIGHT = 400; Point point =
 				 * GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint();
 				 * this.setBounds(point.x - DIALOG_WHITE / 2, point.y - DIALOG_HEIGHT / 2,
@@ -162,10 +173,9 @@ public class MainWindow implements Log{
 		initLogCard(cardMap.get(Logging));
 		initThemeCard(cardMap.get(Theme));
 		
-		frame.repaint();
 		frame.setVisible(true);
 		
-		dialog.setVisible(false);
+		hideTopTip();
 	}
 	
 	/**
@@ -217,9 +227,10 @@ public class MainWindow implements Log{
 	 */
 	public static void initVsdsCard(JPanel vsdsCard) {
 		JLabel optionLabel1 = new JLabel("文件路径:");
-		JButton selectFile = createCardButton("选择文件", "请选择需要转化的visio绘图文件(vsd、vsdx)", optionLabel1);
+		JButton selectFile = createCardButton("选择文件", "<html>请选择需要转化的visio绘图文件vsd...<br>选择文件后会为您自动通过visio打开vsd文件，"
+				+ "如果您之前已打开此vsd文件，请先关闭，因为一个visio document只允许一个实例</html>", optionLabel1);
 		JLabel optionLabel2 = new JLabel("已选择页面(默认所有)");
-		JButton selectPage = createCardButton("选择页面", "请选择文件中的流程图页面进行转化", optionLabel2);
+		JButton selectPage = createCardButton("选择页面", "<html>请选择文件中的流程图页面进行转化...<br>此时您可以在visio修改vsd，对于转化会立刻生效</html>", optionLabel2);
 		vsdsCard.add(selectFile);
 		vsdsCard.add(selectPage);
 		
@@ -233,11 +244,11 @@ public class MainWindow implements Log{
 				setupOnTop();
 				Produce<Void> produce1 = Main.openFile(path);
 				if(showMessageDialogAtFailed(vsdsCard,produce1,
-						"提示：请先关闭visio打开的vsd文件，因为只能打开一个document实例。\n"))return;
+						"提示：请先关闭打开的vsd文件，因为只能打开一个document实例。"))return;
 				
 				Produce<Map<String, Integer>> produce2 = Main.getPagesInfo();
 				if(showMessageDialogAtFailed(vsdsCard,produce2,
-						"提示：这个时候请不要在visio中编辑页面。\n"))return;
+						"提示：这个时候请不要在visio中编辑。"))return;
 				Map<String, Integer> pageMap = produce2.product;
 				if(pageMap.size()>0) {
 					JButton selectBotton = new JButton("取消全选");//TODO
@@ -306,15 +317,16 @@ public class MainWindow implements Log{
 	 */
 	public static void initExecuteCard(JPanel executeCard) {
 		JLabel optionLabel1 = new JLabel("");
-		JButton vsds = createCardButton("单个文件", "将会转化单个的文件中选定的页面",optionLabel1);
+		JButton vsds = createCardButton("单个文件", "转化单个的文件中选定的页面(不要关闭visio)",optionLabel1);
 		JLabel optionLabel2 = new JLabel("");
-		JButton batch = createCardButton("批量文件", "将会对批量选择的文件的所有页面进行转化", optionLabel2);
+		JButton batch = createCardButton("批量文件", "对批量选择的文件的所有页面进行转化(请不要关闭visio)", optionLabel2);
 		executeCard.add(vsds);
 		executeCard.add(batch);
 		
 		addButtomListener(vsds, b->{
 			Produce<Void> produce1 = Main.executeVsds();
 			if(showMessageDialogAtFailed(executeCard,produce1,""))return;
+			showMessageDialogAtSucess(executeCard, produce1, "页面转化完成");
 		});
 	}
 	
@@ -349,28 +361,17 @@ public class MainWindow implements Log{
 
 
 	/**
-	 * 
-	 * @param text
-	 * @return
+	 * 初始化提示弹框
 	 */
-	public static JButton createToggleButton(String text,String name1,String name2,Color color1,Color color2) {
-		JButton pageButton = new JButton(text);
-		setUniformFont(pageButton);
-		pageButton.setName(name1);
-		pageButton.setBackground(color1);
-		addButtomListener(pageButton, b->{
-			if(b.getName().equals(name1)) {
-				b.setName(name2);
-				b.setBackground(new Color(212, 212, 212, 212));
-			}else {
-				pageButton.setName(name1);
-				pageButton.setBackground(color1);
-			}
-		});
-		return pageButton;
+	public static void initTopTip() {
+		tipDialog = new JDialog();
+		tipLabel = new JLabel();
+		tipDialog.setSize(300,100);
+		tipDialog.setLocationRelativeTo(null);
+		tipDialog.add(tipLabel);
 	}
-	
-	
+
+
 	/**
 	 * 主界面窗口置顶
 	 */
@@ -386,18 +387,21 @@ public class MainWindow implements Log{
 	}
 	
 	/**
-	 * 根据执行某一流程返回的produce结果，如果result为Failed则弹框提示
-	 * @param com
-	 * @param produce
-	 * @param message
+	 * 显示提示弹框
+	 * @param tip
 	 */
-	public static boolean showMessageDialogAtFailed(JComponent com,Produce<?> produce,String message) {
-		if(produce.result==Failed) {
-			JOptionPane.showMessageDialog(com, produce.config.get(Main.msg)+"\n"+message);
-			return true;
-		}
-		return false;
+	public static void showTopTip(String tip) {
+		tipLabel.setText(tip);
+		tipDialog.setVisible(true);
 	}
+	
+	/**
+	 * 隐藏提示弹框
+	 */
+	public static void hideTopTip() {
+		tipDialog.setVisible(false);
+	}
+	
 	
 	/**
 	 * 创建文件选择器
@@ -405,12 +409,12 @@ public class MainWindow implements Log{
 	 */
 	public static JFileChooser createFileChooser() {
 		JFileChooser fileChooser=new JFileChooser();  
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES );  
-        fileChooser.showDialog(new JLabel(), "选择");   
-        return fileChooser;
+	    fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES );  
+	    fileChooser.showDialog(new JLabel(), "选择");   
+	    return fileChooser;
 	}
-	
-	
+
+
 	/**
 	 * 改变主题
 	 * @param theme
@@ -431,31 +435,42 @@ public class MainWindow implements Log{
 		}
 		SwingUtilities.updateComponentTreeUI(frame);
 	}
-	
+
+
 	/**
-	 * 创建卡片面板中的通用按钮
-	 * @param title 标题
-	 * @param desc 描述
-	 * @param optionLabel 一个事先创建用于动态显示内容的文本组件
+	 * 设置组件的字体为统一样式
+	 * @param coms
+	 */
+	public static void setUniformFont(JComponent ...coms) {
+		for(JComponent c:coms) {
+			c.setFont(new Font(Font_Uniform,FontStyle_Uniform,FontSize_Uniform));
+		}
+	}
+
+
+	/**
+	 * 
+	 * @param text
 	 * @return
 	 */
-	public static JButton createCardButton(String title,String desc,JLabel optionLabel) {
-		JButton selectFile = new JButton();
-		selectFile.setLayout(new GridLayout(3,1,0,0));
-		selectFile.setPreferredSize(new Dimension(580,100));
-		JLabel titleLabel = new JLabel(title);
-		titleLabel.setFont(new Font(Font_Uniform,FontStyle_Uniform,18));
-		JLabel descLabel = new JLabel(desc);
-		setUniformFont(descLabel,optionLabel);
-		
-		selectFile.add(titleLabel);
-		selectFile.add(descLabel);
-		selectFile.add(optionLabel);
-		selectFile.setBackground(Color.WHITE);
-		return selectFile;
+	public static JButton createToggleButton(String text,String name1,String name2,Color color1,Color color2) {
+		JButton pageButton = new JButton(text);
+		setUniformFont(pageButton);
+		pageButton.setName(name1);
+		pageButton.setBackground(color1);
+		addButtomListener(pageButton, b->{
+			if(b.getName().equals(name1)) {
+				b.setName(name2);
+				b.setBackground(new Color(212, 212, 212, 212));
+			}else {
+				pageButton.setName(name1);
+				pageButton.setBackground(color1);
+			}
+		});
+		return pageButton;
 	}
-	
-	
+
+
 	/**
 	 * 从组件数组列表中获取某一类型的组件转为list
 	 * @param c
@@ -472,7 +487,8 @@ public class MainWindow implements Log{
 		}
 		return list;
 	}
-	
+
+
 	/**
 	 * 从组件数组列表中获取某一类型的组件转为map
 	 * @param c
@@ -488,6 +504,59 @@ public class MainWindow implements Log{
 			}
 		}
 		return map;
+	}
+
+
+	/**
+	 * 根据执行某一流程返回的produce结果，如果result为Failed则弹框提示
+	 * @param com
+	 * @param produce
+	 * @param message
+	 */
+	public static boolean showMessageDialogAtFailed(JComponent com,Produce<?> produce,String message) {
+		if(produce.result==Failed) {
+			JOptionPane.showMessageDialog(com, produce.config.get(Main.msg)+"\n"+message);
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * 根据执行某一流程返回的produce结果，如果result为Sucess则弹框提示
+	 * @param com
+	 * @param produce
+	 * @param message
+	 * @return
+	 */
+	public static boolean showMessageDialogAtSucess(JComponent com,Produce<?> produce,String message) {
+		if(produce.result==Sucess) {
+			JOptionPane.showMessageDialog(com, produce.config.get(Main.msg)+"\n"+message);
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * 创建卡片面板中的通用按钮
+	 * @param title 标题
+	 * @param desc 描述
+	 * @param optionLabel 一个事先创建用于动态显示内容的文本组件
+	 * @return
+	 */
+	public static JButton createCardButton(String title,String desc,JLabel optionLabel) {
+		JButton selectFile = new JButton();
+		selectFile.setLayout(new GridLayout(3,1,0,0));
+		selectFile.setPreferredSize(new Dimension(580,160));
+		JLabel titleLabel = new JLabel(title);
+		titleLabel.setFont(new Font(Font_Uniform,FontStyle_Uniform,18));
+		JLabel descLabel = new JLabel(desc);
+		setUniformFont(descLabel,optionLabel);
+		
+		selectFile.add(titleLabel);
+		selectFile.add(descLabel);
+		selectFile.add(optionLabel);
+		selectFile.setBackground(Color.WHITE);
+		return selectFile;
 	}
 	
 	
@@ -625,16 +694,6 @@ public class MainWindow implements Log{
 		});
 	}
 	
-	
-	/**
-	 * 设置组件的字体为统一样式
-	 * @param coms
-	 */
-	public static void setUniformFont(JComponent ...coms) {
-		for(JComponent c:coms) {
-			c.setFont(new Font(Font_Uniform,FontStyle_Uniform,FontSize_Uniform));
-		}
-	}
 	
 	/**
 	 * 当点击菜单列表里某个菜单，对其余菜单的操作，通常用用于翻转取反
