@@ -163,9 +163,12 @@ function createVisioShapBatchByMID(MIDlist,className,parentID){
 				div.style.height = parseInt(svgShap.height)+'px';
 				/* visio生成svg中图形的第一个desc子节点为图形文字内容 */
 				var desc = svgObject.getElementsByTagName("desc")[0];
-			 	if(desc){
+			 	if(desc!=null && desc!=' '){
 			 		/* 使用textContent仅获取文本，高性能且防止XSS攻击 */
 			 		div.textContent = desc.textContent;
+				}else{
+					/* 如果获取标题为空，则会导致定位误差，需要设置一个描述 */
+					div.textContent = "无标题";
 				}
 			});
 			/* 设置父容器的位置，以第一个shape的位置为基准 */

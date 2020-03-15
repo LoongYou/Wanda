@@ -3,6 +3,7 @@ package com.cod.wanda.flow;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -33,6 +34,8 @@ public class ExecuteFlow {
 	private static IVDocument lastDoc; 
 	private static String lastPath;
 	private static List<IVPage> lastPages;
+	private static List<String> selectedPages;
+	
 	public static final String Swimlane_vertical= "Swimlane (vertical)";
 	public static final String Separator_vertical= "Separator (vertical)";
 	public static final String JavascriptVarsAnchor = "//javascriptVarsAnchor";
@@ -129,6 +132,7 @@ public class ExecuteFlow {
 		int shapeCount = shapes.count();
 		Log.info("shapeCount="+shapeCount);
 		List<Integer> swimlane_verticals = new ArrayList<>();
+		Map<Double,Integer> map = new HashMap<>();
 		// 遍历该Page对象中所有的Shape对象
 		for (int i = 1; i <= shapeCount; i++) {
 			IVShape shape = shapes.itemU(i);
@@ -136,9 +140,14 @@ public class ExecuteFlow {
 			String nameU = shapeInfo.get(Shape.nameU);
 			if(nameU.startsWith(Swimlane_vertical)) {
 				Log.info("get swimlane_verticals="+shapeInfo.get(Shape.id));
-				swimlane_verticals.add(Integer.parseInt(shapeInfo.get(Shape.id)));
+				/* visio将shape保存在一个工作表sheet里面，并且按照一定的规则排序，如果text为空的shape则排在前面，
+				 * 这就会造成html页面中的标题顺序错误，实在恶心，故此需要按照坐标来排序*/
+				map.put(Double.parseDouble(shapeInfo.get(Shape.PinX)), Integer.parseInt(shapeInfo.get(Shape.id)));
 			}
 		}
+		map.keySet().stream().sorted().forEach(key->{			
+			swimlane_verticals.add(map.get(key));
+		});
 		return swimlane_verticals;
 	}
 	
@@ -153,6 +162,7 @@ public class ExecuteFlow {
 		int shapeCount = shapes.count();
 		Log.info("shapeCount="+shapeCount);
 		List<Integer> separator_verticals = new ArrayList<>();
+		Map<Double,Integer> map = new HashMap<>();
 		// 遍历该Page对象中所有的Shape对象
 		for (int i = 1; i <= shapeCount; i++) {
 			IVShape shape = shapes.itemU(i);
@@ -160,9 +170,15 @@ public class ExecuteFlow {
 			String nameU = shapeInfo.get(Shape.nameU);
 			if(nameU.startsWith(Separator_vertical)) {
 				Log.info("get separator_verticals="+shapeInfo.get(Shape.id));
-				separator_verticals.add(Integer.parseInt(shapeInfo.get(Shape.id)));
+				// svg中图形的y坐标向下和html相反，为负值，需要取反进行排序
+				map.put(Double.parseDouble(shapeInfo.get(Shape.PinY))*-1, Integer.parseInt(shapeInfo.get(Shape.id)));
 			}
 		}
+		
+		map.keySet().stream().sorted().forEach(key->{			
+			separator_verticals.add(map.get(key));
+		});
+		
 		return separator_verticals;
 	}
 	
@@ -278,6 +294,9 @@ public class ExecuteFlow {
 	 */
 	public static void saveVisioToSvg(String dir) throws CODException, IOException {
 		try {
+			if(dir==null) {
+				throw new CODException("输出路径为空，请先设置输出目录");
+			}
 			if (executeFlag == Executing) {
 				throw new CODException("程序 正忙");
 			}

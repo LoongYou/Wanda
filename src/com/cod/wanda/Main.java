@@ -148,6 +148,7 @@ public class Main implements Log{
 		StringMap config = new StringMap();
 		try {
 			ExecuteFlow.saveVisioToSvg(proConfig.get(UserOptions.outPutDir));
+			config.put(msg, "");
 			return Produce.out(config, null,Sucess);
 		}catch(CODException e) {
 			config.put(msg, e.toString());
