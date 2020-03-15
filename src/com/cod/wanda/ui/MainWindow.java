@@ -107,6 +107,7 @@ public class MainWindow implements Log{
 	
 	public MainWindow() {
 		
+		
 		initTopTip();
 		showTopTip("Now starting Wanda");
 		
@@ -171,8 +172,10 @@ public class MainWindow implements Log{
 		initOutputCard(cardMap.get(Output));
 		initExecuteCard(cardMap.get(Execute));
 		initLogCard(cardMap.get(Logging));
+		initAboutCard(cardMap.get(About));
 		initThemeCard(cardMap.get(Theme));
 		
+		changeTheme(LookAndFeel02, frame);
 		frame.setVisible(true);
 		
 		hideTopTip();
@@ -338,14 +341,37 @@ public class MainWindow implements Log{
 	public static void initLogCard(JPanel logCard) {
 		
 		logTextArea = new ScrollTextArea();
-		logTextArea.setPreferredSize(new Dimension(450,230));
-		logTextArea.setRows(8);
+		logTextArea.setPreferredSize(new Dimension(550,420));
+		logTextArea.setRows(10);
 		setUniformFont(logTextArea);
 		logCard.add(logTextArea);
 		logTextArea.append("\nUI初始化完成");
 	}
 
 
+	public static void initAboutCard(JPanel aboutCard) {
+		ScrollTextArea about = new ScrollTextArea();
+		about.setPreferredSize(new Dimension(550,420));
+		about.setRows(10);
+		setUniformFont(about);
+		aboutCard.add(about);
+		about.append("介绍\n"
+				+ "这是一个对vsd流程图进行视觉优化的小工具，可将vsd文件转为html，主要针对软件设计流程图中的泳道和阶段实现粘性导航标题，提高阅读效率。\n"
+				+ "\nF&Q\n"
+				+ "\n它用在什么场景？\n"
+				+ "--软件设计流程图的初衷是如实的描述逻辑和关联系统的交互，因此泳道列表是必不可少的，当流程图较大，在visio中往往要上下翻动页面查看，"
+				+ "影响了效率和准确性。此时你会希望泳道或阶段的标题可以像excel那样冻结拆分，这正是本工具所提供的。\n"
+				+ "\n这会改动原来的vsd文件吗？\n"
+				+ "--不会，但是需要通过visio打开vsd文件以读取信息。\n"
+				+ "\n对运行环境的要求？\n"
+				+ "--需要jdk1.8,因为它使用了jdk1.8的一些新特性，兼容visio2007及以上版本，不支持IE，请将默认浏览器设为谷歌或其他\n"
+				+ "\n可以在html中修改vsd文件吗？\n"
+				+ "--理论上可以实现，但是不是现在。你知道这不仅仅是时间问题，因为visio其实是个非常远古的软件，使用了非常封闭的文件格式(vsd)，"
+				+ "只有通过visio将vsd转为svg(W3C开放格式矢量图形)，才使得在浏览器中操作有了可能，"
+				+ "要知道即便是解析visio生成的svg也是让人非常烦躁的，so，我认为对一种封闭的格式重复造轮子是没有意义的，点到为止即可。");
+	}
+	
+	
 	public static void initThemeCard(JPanel themeCard) {
 		for(String theme:Themes) {
 			JButton button = new JButton();

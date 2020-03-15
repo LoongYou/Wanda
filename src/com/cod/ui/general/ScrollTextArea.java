@@ -23,6 +23,10 @@ public class ScrollTextArea extends JScrollPane implements Log{
 	public ScrollTextArea() {
 		textArea = new JTextArea();
 		textArea.setAutoscrolls(true);
+		//设置自动换行
+		textArea.setLineWrap(true);
+		//设置换行不断字
+		textArea.setWrapStyleWord(true);
 		setViewportView(textArea);
 		setAutoscrolls(true);
 		setVisible(true);

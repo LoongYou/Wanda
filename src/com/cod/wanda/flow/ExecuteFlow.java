@@ -141,7 +141,7 @@ public class ExecuteFlow {
 			if(nameU.startsWith(Swimlane_vertical)) {
 				Log.info("get swimlane_verticals="+shapeInfo.get(Shape.id));
 				/* visio将shape保存在一个工作表sheet里面，并且按照一定的规则排序，如果text为空的shape则排在前面，
-				 * 这就会造成html页面中的标题顺序错误，实在恶心，故此需要按照坐标来排序*/
+				 * 这就会造成html页面中的标题顺序错误，实在恶心，故需要按照坐标来排序*/
 				map.put(Double.parseDouble(shapeInfo.get(Shape.PinX)), Integer.parseInt(shapeInfo.get(Shape.id)));
 			}
 		}
@@ -247,6 +247,7 @@ public class ExecuteFlow {
 		Log.info(list);
 		List<Integer> comlist = new ArrayList<>();
 		list.forEach(id -> {
+			//在visio生成的svg中，泳道标题对象是泳道对象中的子节点，一般情况下是第二个，目前尚未发现特殊情况
 			comlist.add(Integer.sum(id.intValue(), 2));
 		});
 		return comlist;
@@ -348,6 +349,7 @@ public class ExecuteFlow {
 				FileUtil.createFile(htmlFilePath);
 				//写入html
 				FileUtil.write(new File(htmlFilePath), html);
+				//打开默认浏览器
 				Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler "+htmlFilePath);
 			}
 		} finally {
