@@ -19,6 +19,16 @@
 	padding: 0px;
 }
 
+.Swimlane_title {
+	position: sticky;
+	left:30px;
+	rigth:0px;
+	margin-top: 5px;
+	margin-left: 30px;
+	display: inline-block;
+	background: #FFFFF0;
+}
+
 .Separator {
 	background: #FFFFF0;
 	border-style: solid;
@@ -28,6 +38,16 @@
 	margin-left: 0px;
 	padding: 0px;
 }
+
+.Separator_title {
+	position: sticky;
+	margin-top: 40px;
+	top:40px;
+	bottom:0px;
+	display: inline-block;
+	background: #FFFFF0;
+}
+
 </style>
 
 <script type="text/javascript">
@@ -57,9 +77,32 @@ window.onload = function(){
 	
 
 	/* 设置泳道标题  */
-	createVisioShapBatchByMID(visioSwimlanShapMIDList,"Swimlane","vertical1");
+	createVisioShapBatchByMID(visioSwimlanShapMIDList,"Swimlane","vertical1",(div,desc)=>{
+		var div1 = document.createElement("DIV");
+		div.appendChild(div1);
+		div1.className = 'Swimlane_title';
+	 	if(desc!=null && desc!=' '){
+	 		/* 使用textContent仅获取文本，高性能且防止XSS攻击 */
+	 		div1.textContent = desc.textContent;
+		}else{
+			/* 如果获取标题为空，则会导致定位误差，需要设置一个描述 */
+			div1.textContent = "无标题";
+		}
+	});
 	/* 设置阶段标题  */
-	createVisioShapBatchByMID(visioPhaseShapMIDlist,"Separator","vertical2");
+	createVisioShapBatchByMID(visioPhaseShapMIDlist,"Separator","vertical2",(div,desc)=>{
+		var div1 = document.createElement("DIV");
+		div.appendChild(div1);
+		div1.className = 'Separator_title';
+	 	if(desc!=null && desc!=' '){
+	 		/* 使用textContent仅获取文本，高性能且防止XSS攻击 */
+	 		div1.textContent = desc.textContent;
+		}else{
+			/* 如果获取标题为空，则会导致定位误差，需要设置一个描述 */
+			div1.textContent = "无标题";
+		}
+	});
+	
 	/* sticky兼容性处理 */
 	if (!CSS.supports("position", "sticky")
 			&& !CSS.supports("position", "-webkit-sticky")) {
@@ -156,7 +199,7 @@ function computeHeightReduce(height){
 /**
  * 批量动态生成shape对应的div，并添加到父容器中，设置父容器的定位为首个shape的定位
  */
-function createVisioShapBatchByMID(MIDlist,className,parentID){
+function createVisioShapBatchByMID(MIDlist,className,parentID,func){
 	if(MIDlist){
 		var parant = document.getElementById(parentID);
 		for(i = 0;i<MIDlist.length;i++){
@@ -167,13 +210,7 @@ function createVisioShapBatchByMID(MIDlist,className,parentID){
 				div.style.height = parseInt(svgShap.height)+'px';
 				/* visio生成svg中图形的第一个desc子节点为图形文字内容 */
 				var desc = svgObject.getElementsByTagName("desc")[0];
-			 	if(desc!=null && desc!=' '){
-			 		/* 使用textContent仅获取文本，高性能且防止XSS攻击 */
-			 		div.textContent = desc.textContent;
-				}else{
-					/* 如果获取标题为空，则会导致定位误差，需要设置一个描述 */
-					div.textContent = "无标题";
-				}
+				func(div,desc);
 			});
 			/* 设置父容器的位置，以第一个shape的位置为基准 */
 			if(i == 0){
