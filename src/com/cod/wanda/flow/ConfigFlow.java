@@ -40,7 +40,7 @@ public class ConfigFlow implements Log{
 			PropertiesUtil.propertiesCopyToMap(properties, config, true);
 			//throw new IOException("shit");
 		} catch (IOException e) {
-			throw new CODException("获取本地配置失败，将使用默认配置",e);
+			Log.errorEx("获取本地配置失败，将使用默认配置",e);
 		}
 		return config;
 	}
@@ -82,7 +82,7 @@ public class ConfigFlow implements Log{
 			try {
 				FileUtil.createFile(userDir+"\\"+name);
 			} catch (IOException e) {
-				throw new CODException("初始化本地配置文件失败："+name,e);
+				Log.errorEx("初始化本地配置文件失败："+name,e);
 			}
 		}
 		Log.info("初始化本地文件 finish");

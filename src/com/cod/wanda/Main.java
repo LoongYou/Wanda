@@ -30,7 +30,6 @@ public class Main implements Log{
 	
 		Main main = new Main();
 		main.startup();
-		//main.docStages(main.proConfig,main.getDocument(main.proConfig.get(UserOptions.sourceFilePath)));
 	}
 	
 	/**
@@ -50,9 +49,7 @@ public class Main implements Log{
 			ConfigFlow.initLocalFile(localFiles);
 			proConfig = ConfigFlow.getLocalConfig();
 			textArea.append("启动工作流 finish...");
-		}catch(CODException e) {
-			textArea.appendEx("启动工作流异常", e);
-		}catch(Exception e) {
+		}catch(Exception | CODException e) {
 			textArea.appendEx("启动工作流异常", e);
 		}
 	}
@@ -78,24 +75,22 @@ public class Main implements Log{
 		StringMap config = new StringMap();
 		try {
 			if(!path.endsWith(".vsd") && !path.endsWith(".vsdx")) {
-				throw new CODException("请选择.vsd或.vsdx文件");
+				Log.errorEx("请选择.vsd或.vsdx文件");
 			}
 			File file = new File(path);
 			if(!file.exists() || file.isDirectory()) {
-				throw new CODException("选择的文件不是存在或者不是一个文件");
+				Log.errorEx("选择的文件不存在或者不是一个文件");
 			}
 			textArea.append("打开文件："+path);
 			proConfig.put(UserOptions.sourceFilePath, path);
 			ExecuteFlow.getDoc(proConfig);
-			return Produce.out(null,Sucess);
-		}catch(CODException e) {
+		}catch(Exception | CODException e) {
 			config.put(msg, e.toString());
+			Log.error(config);
 			textArea.appendEr("打开文件异常", e);
-		}catch(Exception e) {
-			config.put(msg, e.toString());
-			textArea.appendEr("打开文件异常", e);
+			return Produce.out(config, null,Failed);
 		}
-		return Produce.out(config, null,Failed);
+		return Produce.out(null,Sucess);
 	}
 	
 	/**
@@ -104,16 +99,17 @@ public class Main implements Log{
 	 */
 	public static Produce<Map<String, Integer>> getPagesInfo() {
 		StringMap config = new StringMap();
+		Map<String, Integer> map =null;
 		try {
 			List<IVPage> pages = ExecuteFlow.getPages(config);
-			Map<String, Integer> map = ExecuteFlow.getPageMap(pages);
-			return Produce.out(config, map,Sucess);
-		}catch(Exception e) {
-			Log.info(config);
+			map = ExecuteFlow.getPageMap(pages);
+		}catch(Exception | CODException e) {
 			config.put(msg, e.toString());
+			Log.error(config);
 			textArea.appendEr("获取页面异常", e);
+			return Produce.out(config,null,Failed);
 		}
-		return Produce.out(config, null,Failed);
+		return Produce.out(config, map,Sucess);
 	}
 	
 	/**
@@ -139,6 +135,24 @@ public class Main implements Log{
 		return Produce.out(config,null,Sucess);
 	}
 	
+	/**
+	 * 设置已选择的页面
+	 * @param pageList
+	 * @return
+	 */
+	public static Produce<Void> setSelectedPages(List<String> pageList){
+		StringMap config = new StringMap();
+		try {			
+			ExecuteFlow.setSelectedPageList(pageList);
+		}catch(Exception e) {
+			config.put(msg, e.toString());
+			Log.error(config);
+			textArea.appendEr("设置已选择的页面异常", e);
+			return Produce.out(config,null,Failed);
+		}
+		return Produce.out(config,null,Sucess);
+	}
+	
 	
 	/**
 	 * 执行单个vsd文件转化
@@ -149,15 +163,13 @@ public class Main implements Log{
 		try {
 			ExecuteFlow.saveVisioToSvg(proConfig.get(UserOptions.outPutDir));
 			config.put(msg, "");
-			return Produce.out(config, null,Sucess);
-		}catch(CODException e) {
+		}catch(Exception | CODException e) {
 			config.put(msg, e.toString());
-			textArea.appendEr("打开文件异常", e);
-		}catch(Exception e) {
-			config.put(msg, e.toString());
-			textArea.appendEr("打开文件异常", e);
+			Log.error(config);
+			textArea.appendEr("执行转换异常", e);
+			return Produce.out(config,null,Failed);
 		}
-		return Produce.out(config, null,Failed);
+		return Produce.out(config, null,Sucess);
 		
 	}
 	

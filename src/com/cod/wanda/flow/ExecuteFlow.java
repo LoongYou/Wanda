@@ -34,7 +34,7 @@ public class ExecuteFlow {
 	private static IVDocument lastDoc; 
 	private static String lastPath;
 	private static List<IVPage> lastPages;
-	private static List<String> selectedPages;
+	private static List<String> selectedPages = new ArrayList<>();
 	
 	public static final String Swimlane_vertical= "Swimlane (vertical)";
 	public static final String Separator_vertical= "Separator (vertical)";
@@ -54,7 +54,7 @@ public class ExecuteFlow {
 	 */
 	public static IVDocument getDoc(StringMap config) throws CODException {
 		if(executeFlag==1) {
-			throw new CODException("程序 正忙");
+			Log.errorEx("程序正忙");
 		}
 		StringMap docConfig = new StringMap();
 		String path = config.get(UserOptions.sourceFilePath);
@@ -65,21 +65,26 @@ public class ExecuteFlow {
 				return lastDoc;
 			}
 		}
-
-		// 创建Visio对象
-		IVApplication app = ClassFactory.createApplication();
-		// Visio对象设置为可见
-		app.visible(true);
-		// 打开一个Visio文件
-		IVDocuments docs = app.documents();
-		IVDocument doc = docs.open(path);
-		docConfig.put(Doc.path, doc.path());
-		docConfig.put(Doc.name, doc.name());
-		docConfig.put(Doc.creator, doc.creator());
-		docConfig.put(Doc.alternateNames, doc.alternateNames());
-		Log.info("document has opened");
-		
-		lastDoc = doc;
+		IVDocument doc = null;
+		try {			
+			// 创建Visio对象
+			IVApplication app = ClassFactory.createApplication();
+			// Visio对象设置为可见
+			app.visible(true);
+			// 打开一个Visio文件
+			IVDocuments docs = app.documents();
+			doc = docs.open(path);
+			lastDoc = doc;
+			docConfig.put(Doc.path, doc.path());
+			docConfig.put(Doc.name, doc.name());
+			docConfig.put(Doc.creator, doc.creator());
+			docConfig.put(Doc.alternateNames, doc.alternateNames());
+			Log.info("document has opened");
+		}catch(Exception e) {
+			//如果异常，则将document对象释放，避免陷入交互死局
+			lastDoc = null;
+			Log.errorEx("打开visio document异常", e);
+		}
 		config.merge(docConfig, false);
 		return doc;
 	}
@@ -88,22 +93,29 @@ public class ExecuteFlow {
 	 * 获取页面列表
 	 * @param config
 	 * @return
+	 * @throws CODException 
 	 */
-	public static List<IVPage> getPages(StringMap config){
+	public static List<IVPage> getPages(StringMap config) throws CODException{
 		if(lastDoc==null) {
 			return null;
 		}
-		IVPages pages = lastDoc.pages();
-		int pageCount = pages.count();
-		if (pages != null) {
-			config.put(Doc.pageCount, String.valueOf(pageCount));
-		}
-		
 		List<IVPage> pageList = new ArrayList<>();
-		for(int i = 1;i<=pageCount;i++) {
-			pageList.add(pages.itemU(i));
+		try {
+			IVPages pages = lastDoc.pages();
+			int pageCount = pages.count();
+			if (pages != null) {
+				config.put(Doc.pageCount, String.valueOf(pageCount));
+			}
+			
+			for(int i = 1;i<=pageCount;i++) {
+				pageList.add(pages.itemU(i));
+			}
+			lastPages = pageList;
+			return pageList;
+		}catch(Exception e) {
+			lastDoc = null;//如果异常将document对象释放，避免陷入交互死局
+			Log.errorEx("读取页面信息异常", e);
 		}
-		lastPages = pageList;
 		return pageList;
 	}
 	
@@ -287,6 +299,17 @@ public class ExecuteFlow {
 	}
 	
 	/**
+	 * 设置选择的页面
+	 * @param selectedPageList
+	 */
+	public static void setSelectedPageList(List<String> selectedPageList) {
+		if(selectedPageList!=null) {
+			selectedPages.clear();
+			selectedPages.addAll(selectedPageList);
+		}
+	}
+	
+	/**
 	 * 将当前选择的页面导出为svg，并内联到html文件后另存
 	 * @param dir 输出文件夹路径
 	 * @return
@@ -296,18 +319,24 @@ public class ExecuteFlow {
 	public static void saveVisioToSvg(String dir) throws CODException, IOException {
 		try {
 			if(dir==null) {
-				throw new CODException("输出路径为空，请先设置输出目录");
+				Log.errorEx("输出路径为空，请先设置输出目录");
 			}
 			if (executeFlag == Executing) {
-				throw new CODException("程序 正忙");
+				Log.errorEx("程序 正忙");
 			}
 			if (lastPages == null || lastPages.size() == 0) {
-				throw new CODException("lastPages is empty");
+				Log.errorEx("lastPages is empty");
 			}
 			if (lastDoc == null) {
-				throw new CODException("doc is null");
+				Log.errorEx("doc is null");
 			}
-			String docName = lastDoc.name();
+			String docName = null;
+			try {
+				docName = lastDoc.name();
+			}catch(Exception e) {
+				lastDoc = null;
+				Log.errorEx("读取document name属性异常", e);
+			}
 			String dirName = null;
 			if (docName.endsWith(".vsd")) {
 				dirName = docName.substring(0, docName.indexOf(".vsd"));
@@ -326,11 +355,22 @@ public class ExecuteFlow {
 			executeFlag = Executing;
 			// 耗时操作，综合考虑还是暂定hold线程，因为桌面程序多线程会大大增加交互控制复杂度
 			for (IVPage page : lastPages) {
+				
+				
 				String svgFilePath = svgDir + "\\" + page.name() + ".svg";
 				String htmlFilePath = htmlDir + "\\" + page.name() + ".html";
 				Log.info(svgFilePath);
 				// 将当前page保存为svg到对应的目录下
-				page.export(svgFilePath);
+				try {					
+					//只处理已选择的页面
+					if(!selectedPages.contains(page.nameU())) {
+						continue;
+					}
+					page.export(svgFilePath);
+				}catch(Exception e) {
+					lastDoc = null;//如果异常将document对象释放，避免陷入交互死局
+					Log.errorEx("visio导出svg文件异常", e);
+				}
 				// 生成参数
 				String javaScriptVar = buildJavaScriptVar(page);
 				Log.info(javaScriptVar);

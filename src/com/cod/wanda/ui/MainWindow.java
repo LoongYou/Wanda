@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -36,8 +37,13 @@ import com.cod.util.Log;
 import com.cod.ui.general.ScrollTextArea;
 import com.cod.wanda.Main;
 import com.cod.wanda.util.Produce;
+import static java.util.stream.Collectors.toList;
 
 public class MainWindow implements Log{
+	
+	/**操作系统名称*/
+	private static String OS_Name = System.getProperty("os.name").toLowerCase();
+	private static final String OS_Windows = "windows";
 	
 	/**默认风格*/
 	public static final String LookAndFeel00 = "javax.swing.plaf.metal.MetalLookAndFeel";
@@ -99,6 +105,8 @@ public class MainWindow implements Log{
 	static JLabel tipLabel;
 	/**提示弹框*/
 	static JDialog tipDialog;
+	/**vsd中的页面对应的选择按钮列表*/
+	static List<JButton> pageButtonList = new ArrayList<>();;
 	
 	public static void main(String[] args) {
 		new MainWindow();
@@ -175,7 +183,7 @@ public class MainWindow implements Log{
 		initAboutCard(cardMap.get(About));
 		initThemeCard(cardMap.get(Theme));
 		
-		changeTheme(LookAndFeel02, frame);
+		changeTheme(LookAndFeel00, frame);
 		frame.setVisible(true);
 		
 		hideTopTip();
@@ -234,6 +242,8 @@ public class MainWindow implements Log{
 				+ "如果您之前已打开此vsd文件，请先关闭，因为一个visio document只允许一个实例</html>", optionLabel1);
 		JLabel optionLabel2 = new JLabel("已选择页面(默认所有)");
 		JButton selectPage = createCardButton("选择页面", "<html>请选择文件中的流程图页面进行转化...<br>此时您可以在visio修改vsd，对于转化会立刻生效</html>", optionLabel2);
+		JButton selectBotton = createToggleButton("取消全选","全选","0","1",Color.WHITE,new Color(212, 212, 212, 212));
+		selectPage.add(selectBotton);
 		vsdsCard.add(selectFile);
 		vsdsCard.add(selectPage);
 		
@@ -242,7 +252,7 @@ public class MainWindow implements Log{
 				File file = createFileChooser().getSelectedFile();
 				if(file==null) return;
 				String path = file.getPath();
-				//此时必须等侦听线程执行完成后，修改操作才会生效
+				//此时必须等侦听线程执行完成后，GUI的修改才会生效
 				optionLabel1.setText("文件路径:"+path);
 				setupOnTop();
 				Produce<Void> produce1 = Main.openFile(path);
@@ -251,20 +261,43 @@ public class MainWindow implements Log{
 				
 				Produce<Map<String, Integer>> produce2 = Main.getPagesInfo();
 				if(showMessageDialogAtFailed(vsdsCard,produce2,
-						"提示：这个时候请不要在visio中编辑。"))return;
-				Map<String, Integer> pageMap = produce2.product;
-				if(pageMap.size()>0) {
-					JButton selectBotton = new JButton("取消全选");//TODO
-					selectPage.add(selectBotton);
+						"提示：在转换完成前请不要关闭visio。"))return;
+				
+				//每次触发文件选择清空上次添加的页面按钮
+				for(int i = 0;i<pageButtonList.size();i++) {
+					vsdsCard.remove(pageButtonList.get(i));
 				}
+				pageButtonList.clear();
+				
+				//获取页面名称并添加对应的选择按钮
+				Map<String, Integer> pageMap = produce2.product;
 				pageMap.forEach((pageName,index)->{
-					JButton pageButton = createToggleButton(pageName,
+					JButton pageButton = createToggleButton(pageName,pageName,
 							SelectedPage,UnSelectedPage,Color.WHITE,new Color(212, 212, 212, 212));
+					pageButtonList.add(pageButton);
 					vsdsCard.add(pageButton);
+					
+					//TODO
+					
 				});
 				cancelOnTop();
 			}catch(Exception e) {
 				Log.error(e);
+			}
+		});
+		
+		addButtomListener(selectBotton, b -> {
+			if ("0".equals(b.getName())) {
+				pageButtonList.forEach(pageButton -> {
+					pageButton.setName(UnSelectedPage);
+					pageButton.setBackground(new Color(212, 212, 212, 212));
+				});
+			}
+			if ("1".equals(b.getName())) {
+				pageButtonList.forEach(pageButton -> {
+					pageButton.setName(SelectedPage);
+					pageButton.setBackground(Color.WHITE);
+				});
 			}
 		});
 	}
@@ -327,9 +360,17 @@ public class MainWindow implements Log{
 		executeCard.add(batch);
 		
 		addButtomListener(vsds, b->{
-			Produce<Void> produce1 = Main.executeVsds();
+			if(pageButtonList==null || pageButtonList.size()==0) {
+				optionLabel1.setText("您还没有选择要处理的页面");
+				return;
+			}
+			List<String> pageList = pageButtonList.stream().map(JButton::getText).collect(toList());
+			System.out.println(pageList);
+			Produce<Void> produce1 = Main.setSelectedPages(pageList);
 			if(showMessageDialogAtFailed(executeCard,produce1,""))return;
-			showMessageDialogAtSucess(executeCard, produce1, "页面转化完成");
+			Produce<Void> produce2 = Main.executeVsds();
+			if(showMessageDialogAtFailed(executeCard,produce2,""))return;
+			showMessageDialogAtSucess(executeCard, produce2, "页面转化完成");
 		});
 	}
 	
@@ -434,9 +475,13 @@ public class MainWindow implements Log{
 	 * @return
 	 */
 	public static JFileChooser createFileChooser() {
-		JFileChooser fileChooser=new JFileChooser();  
-	    fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES );  
-	    fileChooser.showDialog(new JLabel(), "选择");   
+		JFileChooser fileChooser=new JFileChooser();
+		//如果操作系统为window则设置window样式
+		if(OS_Name.indexOf(OS_Windows)>=0) {			
+			changeTheme(LookAndFeel02, fileChooser);
+		}
+	    fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES );
+	    fileChooser.showDialog(new JLabel(), "选择");
 	    return fileChooser;
 	}
 
@@ -446,7 +491,7 @@ public class MainWindow implements Log{
 	 * @param theme
 	 * @param frame
 	 */
-	public static void changeTheme(String theme,JFrame frame) {
+	public static void changeTheme(String theme,Component frame) {
 		logTextArea.append("\n切换主题:"+theme);
 		bottomTextArea.setText("切换主题:"+theme);
 		try {
@@ -475,22 +520,28 @@ public class MainWindow implements Log{
 
 
 	/**
-	 * 
-	 * @param text
+	 * 创建翻转按钮，通过两次点击，对其的Name属性做两种标志的翻转
+	 * @param text1 按钮显示文本
+	 * @param name1 按钮默认标志
+	 * @param name2 点击后标志
+	 * @param color1 默认颜色
+	 * @param color2 点击后颜色
 	 * @return
 	 */
-	public static JButton createToggleButton(String text,String name1,String name2,Color color1,Color color2) {
-		JButton pageButton = new JButton(text);
+	public static JButton createToggleButton(String text1,String text2,String name1,String name2,Color color1,Color color2) {
+		JButton pageButton = new JButton(text1);
 		setUniformFont(pageButton);
 		pageButton.setName(name1);
 		pageButton.setBackground(color1);
 		addButtomListener(pageButton, b->{
 			if(b.getName().equals(name1)) {
+				b.setText(text2);
 				b.setName(name2);
-				b.setBackground(new Color(212, 212, 212, 212));
+				b.setBackground(color2);
 			}else {
-				pageButton.setName(name1);
-				pageButton.setBackground(color1);
+				b.setText(text1);
+				b.setName(name1);
+				b.setBackground(color1);
 			}
 		});
 		return pageButton;
@@ -535,9 +586,9 @@ public class MainWindow implements Log{
 
 	/**
 	 * 根据执行某一流程返回的produce结果，如果result为Failed则弹框提示
-	 * @param com
-	 * @param produce
-	 * @param message
+	 * @param com 弹框依附的组件
+	 * @param produce 
+	 * @param message 描述信息
 	 */
 	public static boolean showMessageDialogAtFailed(JComponent com,Produce<?> produce,String message) {
 		if(produce.result==Failed) {
@@ -549,9 +600,9 @@ public class MainWindow implements Log{
 	
 	/**
 	 * 根据执行某一流程返回的produce结果，如果result为Sucess则弹框提示
-	 * @param com
-	 * @param produce
-	 * @param message
+	 * @param com 弹框依附的组件
+	 * @param produce 
+	 * @param message 描述信息
 	 * @return
 	 */
 	public static boolean showMessageDialogAtSucess(JComponent com,Produce<?> produce,String message) {
@@ -680,11 +731,11 @@ public class MainWindow implements Log{
 
 	/**
 	 * 添加按钮鼠标侦听器
-	 * @param menu
+	 * @param button
 	 * @param operation 鼠标点击的操作，侦听线程中不能绑定耗时操作
 	 */
-	public static void addButtomListener(JButton menu,Consumer<JComponent> operation) {
-		menu.addMouseListener(new MouseListener() {
+	public static void addButtomListener(JButton button,Consumer<JButton> operation) {
+		button.addMouseListener(new MouseListener() {
 			
 			@Override
 			public void mouseReleased(MouseEvent e) {
@@ -712,8 +763,8 @@ public class MainWindow implements Log{
 			
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if(menu.equals(e.getSource())) {
-					operation.accept(menu);
+				if(button.equals(e.getSource())) {
+					operation.accept(button);
 				}
 				
 			}
