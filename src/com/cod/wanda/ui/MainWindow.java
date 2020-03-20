@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -36,6 +37,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 import com.cod.util.Log;
 import com.cod.ui.general.ScrollTextArea;
 import com.cod.wanda.Main;
+import com.cod.wanda.commons.constants.OptionCollocations.UserOptions;
 import com.cod.wanda.util.Produce;
 import static java.util.stream.Collectors.toList;
 
@@ -171,15 +173,16 @@ public class MainWindow implements Log{
 		menuList = getComponentListOfType(JButton.class, menus);
 		Map<String,JPanel> cardMap = getComponentMapOfType(JPanel.class, cards);
 		
+		//务必按顺序初始化面板
+		initLogCard(cardMap.get(Logging));
+		initButtomPanel(bottomPanel);
 		initLeftScrollPane(leftScrollPane);
 		initMenuButtom(menuList);
 		initRightPanel(rigthPanel);
-		initButtomPanel(bottomPanel);
 		initVsdsCard(cardMap.get(Vsds));
 		initBatchCard(cardMap.get(Batch));
 		initOutputCard(cardMap.get(Output));
 		initExecuteCard(cardMap.get(Execute));
-		initLogCard(cardMap.get(Logging));
 		initAboutCard(cardMap.get(About));
 		initThemeCard(cardMap.get(Theme));
 		
@@ -240,9 +243,9 @@ public class MainWindow implements Log{
 		JLabel optionLabel1 = new JLabel("文件路径:");
 		JButton selectFile = createCardButton("选择文件", "<html>请选择需要转化的visio绘图文件vsd...<br>选择文件后会为您自动通过visio打开vsd文件，"
 				+ "如果您之前已打开此vsd文件，请先关闭，因为一个visio document只允许一个实例</html>", optionLabel1);
-		JLabel optionLabel2 = new JLabel("已选择页面(默认所有)");
+		JLabel optionLabel2 = new JLabel("点击下方选择要处理的页面");
 		JButton selectPage = createCardButton("选择页面", "<html>请选择文件中的流程图页面进行转化...<br>此时您可以在visio修改vsd，对于转化会立刻生效</html>", optionLabel2);
-		JButton selectBotton = createToggleButton("取消全选","全选","0","1",Color.WHITE,new Color(212, 212, 212, 212));
+		JButton selectBotton = createPageAllButton();
 		selectPage.add(selectBotton);
 		vsdsCard.add(selectFile);
 		vsdsCard.add(selectPage);
@@ -272,13 +275,9 @@ public class MainWindow implements Log{
 				//获取页面名称并添加对应的选择按钮
 				Map<String, Integer> pageMap = produce2.product;
 				pageMap.forEach((pageName,index)->{
-					JButton pageButton = createToggleButton(pageName,pageName,
-							SelectedPage,UnSelectedPage,Color.WHITE,new Color(212, 212, 212, 212));
+					JButton pageButton = createSelectPageButton(pageName);
 					pageButtonList.add(pageButton);
 					vsdsCard.add(pageButton);
-					
-					//TODO
-					
 				});
 				cancelOnTop();
 			}catch(Exception e) {
@@ -360,11 +359,15 @@ public class MainWindow implements Log{
 		executeCard.add(batch);
 		
 		addButtomListener(vsds, b->{
-			if(pageButtonList==null || pageButtonList.size()==0) {
+			List<String> pageList = pageButtonList.stream()
+					.filter(bu->SelectedPage.equals(bu.getName()))
+					.map(JButton::getText).collect(toList());
+			optionLabel1.setText("已选择页面："+pageList);
+			if(pageList==null || pageList.size()==0) {
 				optionLabel1.setText("您还没有选择要处理的页面");
 				return;
 			}
-			List<String> pageList = pageButtonList.stream().map(JButton::getText).collect(toList());
+			pageButtonList.forEach(b1->System.out.println(b1.getText()));
 			System.out.println(pageList);
 			Produce<Void> produce1 = Main.setSelectedPages(pageList);
 			if(showMessageDialogAtFailed(executeCard,produce1,""))return;
@@ -521,33 +524,89 @@ public class MainWindow implements Log{
 
 	/**
 	 * 创建翻转按钮，通过两次点击，对其的Name属性做两种标志的翻转
-	 * @param text1 按钮显示文本
-	 * @param name1 按钮默认标志
-	 * @param name2 点击后标志
-	 * @param color1 默认颜色
-	 * @param color2 点击后颜色
+	 * @param name1 初始标识
+	 * @param name2
+	 * @param con1 对应name1执行的操作
+	 * @param con2 对应name2执行的操作
 	 * @return
 	 */
-	public static JButton createToggleButton(String text1,String text2,String name1,String name2,Color color1,Color color2) {
-		JButton pageButton = new JButton(text1);
-		setUniformFont(pageButton);
-		pageButton.setName(name1);
-		pageButton.setBackground(color1);
-		addButtomListener(pageButton, b->{
-			if(b.getName().equals(name1)) {
-				b.setText(text2);
-				b.setName(name2);
-				b.setBackground(color2);
-			}else {
-				b.setText(text1);
-				b.setName(name1);
-				b.setBackground(color1);
-			}
-		});
-		return pageButton;
+	public static JButton createToggleButton(String name1,String name2,Consumer<JButton> con1,Consumer<JButton> con2) {
+		JButton button = new JButton();
+		setUniformFont(button);
+		changeTheme(LookAndFeel00, button);
+		button.setName(name1);
+		
+		if(con1!=null) {
+			con1.accept(button);
+		}
+			addButtomListener(button, b->{
+				if(b.getName().equals(name1)) {
+					b.setName(name2);
+					if(con2!=null) {
+						con2.accept(button);
+					}
+				}else {
+					b.setName(name1);
+					if(con1!=null) {
+						con1.accept(button);
+					}
+				}
+			});
+		return button;
 	}
+	
 
-
+	public static JButton createSelectPageButton(String text) {
+		return createToggleButton(UnSelectedPage,SelectedPage,
+				b->UnSelectedPageFunc.accept(b, text), 
+				b->SelectedPageFunc.accept(b, text));
+	}
+	
+	
+	static BiConsumer<JButton, String> UnSelectedPageFunc = (b,text)->{
+		System.out.println("con1");
+		if(text!=null) {
+			b.setText(text);
+		}
+		b.setBackground(new Color(188,188,188,188));
+	};
+	
+	static BiConsumer<JButton, String> SelectedPageFunc = (b,text)->{
+		System.out.println("con2");
+		if(text!=null) {
+			b.setText(text);
+		}
+		b.setBackground(Color.WHITE);
+	};
+	
+	static BiConsumer<JButton, String> SelectPageNoneFunc = (b,text)->{
+		if(text!=null) {
+			b.setText(text);
+		}
+		b.setBackground(new Color(188,188,188,188));
+		pageButtonList.forEach(bu->{
+		bu.setName(UnSelectedPage);
+		UnSelectedPageFunc.accept(bu, null);
+		});
+	};
+	
+	static BiConsumer<JButton, String> SelectPageAllFunc = (b,text)->{
+		if(text!=null) {
+			b.setText(text);
+		}
+		b.setBackground(Color.WHITE);
+		pageButtonList.forEach(bu->{
+		bu.setName(SelectedPage);
+		SelectedPageFunc.accept(bu, null);
+		});
+	};
+	
+	public static JButton createPageAllButton() {
+		return createToggleButton(UserOptions.applyPage_none, UserOptions.applyPage_all, 
+				b->SelectPageNoneFunc.accept(b,"没有全选(点击更改)"), b->SelectPageAllFunc.accept(b, "已全选(点击更改)"));
+	}
+	
+	
 	/**
 	 * 从组件数组列表中获取某一类型的组件转为list
 	 * @param c

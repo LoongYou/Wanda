@@ -27,7 +27,7 @@ public class OptionCollocations extends Collocations{
 		/**处理的页面*/
 		String applyPage = createKey("applyPage");
 		String applyPage_all = createKey("applyPage_all");
-		
+		String applyPage_none = createKey("applyPage_none");
 	}
 	
 	
