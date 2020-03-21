@@ -40,15 +40,16 @@ public class Main implements Log{
 	public void startup() throws CODException {
 		try {
 			initUi();
-			textArea.append("启动工作流 start...");
+			textArea.append("UI初始化完成");
 			List<String> dependenetFiles = ConfigFlow.initDependenetFiles();
 			List<String> localFiles = ConfigFlow.checkLocalFile(dependenetFiles);
 			if(localFiles.size()>0) {
 				textArea.append("依赖文件不存在:"+localFiles);
 			}
 			ConfigFlow.initLocalFile(localFiles);
+			ConfigFlow.initDefOutPutDir();
 			proConfig = ConfigFlow.getLocalConfig();
-			textArea.append("启动工作流 finish...");
+			textArea.append("配置项初始化完成");
 		}catch(Exception | CODException e) {
 			textArea.appendEx("启动工作流异常", e);
 		}
@@ -117,9 +118,13 @@ public class Main implements Log{
 	 * @param path
 	 * @return
 	 */
-	public static Produce<Void> setdefaultOutPutDir(String path) {
+	public static Produce<Void> setDefaultOutPutDir(String path) {
 		StringMap config = new StringMap();
 		config.put(msg, ConfigFlow.setDefOutPutDir(path));
+		System.out.println(ConfigFlow.getDefOutPutDir());
+		config.put(UserOptions.defOutPutDir,ConfigFlow.getDefOutPutDir());
+		proConfig.put(UserOptions.defOutPutDir,ConfigFlow.getDefOutPutDir());
+		Log.info(proConfig);
 		return Produce.out(config,null,Sucess);
 	}
 	
@@ -130,10 +135,15 @@ public class Main implements Log{
 	 */
 	public static Produce<Void> setOutPutDir(String path) {
 		StringMap config = new StringMap();
-		config.put(msg, ConfigFlow.setDir(null,path));
+		config.put(msg, ConfigFlow.setDir(path,null));
 		proConfig.put(UserOptions.outPutDir,path);
 		return Produce.out(config,null,Sucess);
 	}
+	
+	public static String getDefOutputDir() {
+		return ConfigFlow.getDefOutPutDir();
+	}
+	
 	
 	/**
 	 * 设置已选择的页面
@@ -161,7 +171,12 @@ public class Main implements Log{
 	public static Produce<Void> executeVsds(){
 		StringMap config = new StringMap();
 		try {
-			ExecuteFlow.saveVisioToSvg(proConfig.get(UserOptions.outPutDir));
+			String outPutDir = proConfig.get(UserOptions.outPutDir);
+			if(outPutDir==null || "".equals(outPutDir.trim())) {
+				ExecuteFlow.saveVisioToSvg(getDefOutputDir());
+			}else {
+				ExecuteFlow.saveVisioToSvg(proConfig.get(UserOptions.outPutDir));
+			}
 			config.put(msg, "");
 		}catch(Exception | CODException e) {
 			config.put(msg, e.toString());
@@ -172,6 +187,21 @@ public class Main implements Log{
 		return Produce.out(config, null,Sucess);
 		
 	}
+	
+	/**
+	 * 退出程序
+	 */
+	public static void exit() {
+		textArea.append("正在关闭并释放document对象......");
+		try {			
+			ExecuteFlow.dispose();
+		}catch(Exception e) {
+			Log.error("关闭document异常", e);
+		}
+		textArea.append("正在保存配置项......");
+		textArea.append("正在退出......");
+	}
+	
 	
 	
 }

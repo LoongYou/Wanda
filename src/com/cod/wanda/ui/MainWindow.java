@@ -1,5 +1,7 @@
 package com.cod.wanda.ui;
 
+import static java.util.stream.Collectors.toList;
+
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
@@ -10,8 +12,12 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -34,17 +39,17 @@ import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-import com.cod.util.Log;
+
 import com.cod.ui.general.ScrollTextArea;
+import com.cod.util.Log;
 import com.cod.wanda.Main;
 import com.cod.wanda.commons.constants.OptionCollocations.UserOptions;
 import com.cod.wanda.util.Produce;
-import static java.util.stream.Collectors.toList;
 
 public class MainWindow implements Log{
 	
 	/**操作系统名称*/
-	private static String OS_Name = System.getProperty("os.name").toLowerCase();
+	private static final String OS_Name = System.getProperty("os.name").toLowerCase();
 	private static final String OS_Windows = "windows";
 	
 	/**默认风格*/
@@ -97,9 +102,9 @@ public class MainWindow implements Log{
 	
 	/**主窗体*/
 	static JFrame frame;
-	/**日志文本域*/
+	/**日志文本域，如果以后有需求可让后台已debug模式输出*/
 	public static ScrollTextArea logTextArea;
-	/**底部文本域*/
+	/**底部文本域，用于提供给后台在方法过程中直接发出提示信息，而不是由主界面控制，增加灵活性*/
 	public static JTextArea bottomTextArea;
 	/**菜单按钮列表*/
 	static List<JButton> menuList;
@@ -114,16 +119,24 @@ public class MainWindow implements Log{
 		new MainWindow();
 	}
 	
-	
 	public MainWindow() {
-		
-		
 		initTopTip();
 		showTopTip("Now starting Wanda");
-		
 		frame = new JFrame();
-		frame.setTitle("Wanda V1.0");
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setTitle("Wanda V1.1");
+		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		frame.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				int value=JOptionPane.showConfirmDialog(frame, "确定退出？");
+				if (value==JOptionPane.OK_OPTION) {
+					Main.exit();
+					super.windowClosed(e);
+					System.exit(0);
+				}
+			}	
+		});
+		
 		//设置在屏幕居中(不一定能居中)
 		frame.setLocationRelativeTo(null);	
 				/*
@@ -232,7 +245,6 @@ public class MainWindow implements Log{
 		bottomTextArea = new JTextArea();
 		bottomPanel.add(bottomTextArea,BorderLayout.NORTH);
 		bottomTextArea.setRows(1);
-		bottomTextArea.append("UI初始化完成");
 	}
 	
 	/**
@@ -266,15 +278,15 @@ public class MainWindow implements Log{
 				if(showMessageDialogAtFailed(vsdsCard,produce2,
 						"提示：在转换完成前请不要关闭visio。"))return;
 				
-				//每次触发文件选择清空上次添加的页面按钮
+				//每次触发文件选择需要清空上次添加的页面按钮
 				for(int i = 0;i<pageButtonList.size();i++) {
 					vsdsCard.remove(pageButtonList.get(i));
 				}
 				pageButtonList.clear();
 				
-				//获取页面名称并添加对应的选择按钮
+				//获取页面名称并添加对应的选择按钮，此时index已经后台排好序
 				Map<String, Integer> pageMap = produce2.product;
-				pageMap.forEach((pageName,index)->{
+				pageMap.forEach((pageName,失明前我曾见过极光彩虹和海洋)->{
 					JButton pageButton = createSelectPageButton(pageName);
 					pageButtonList.add(pageButton);
 					vsdsCard.add(pageButton);
@@ -320,14 +332,20 @@ public class MainWindow implements Log{
 	 * @param outputCard
 	 */
 	public static void initOutputCard(JPanel outputCard) {
+		
+		
 		JLabel optionLabel1 = new JLabel("");
-		JButton vsds = createCardButton("另存为", "设置本次转化输出文件到指定的目录",optionLabel1);
+		JButton vsds = createCardButton("当前文件输出到", "设置本次转化后的文件到指定的目录",optionLabel1);
 		JLabel optionLabel2 = new JLabel("");
-		JButton def = createCardButton("设置输出文件夹", "转化的文件默认保存路径", optionLabel2);
+		JButton def = createCardButton("默认输出到", "转化的文件默认保存路径", optionLabel2);
 		outputCard.add(vsds);
 		outputCard.add(def);
 		
-		addButtomListener(vsds, b->{
+		addHierarchyListener(outputCard, 这缭乱的城市->{
+			optionLabel2.setText(Main.getDefOutputDir());
+		});
+		
+		addButtomListener(vsds, 容不下我的痴->{
 			File file = createFileChooser().getSelectedFile();
 			if(file==null) return;
 			String path = file.getPath();
@@ -336,11 +354,11 @@ public class MainWindow implements Log{
 			optionLabel1.setText(produce1.config.get(Main.msg)+":"+path);
 		});
 		
-		addButtomListener(def, b->{
+		addButtomListener(def, 人若有志不怕迟->{
 			File file = createFileChooser().getSelectedFile();
 			if(file==null) return;
 			String path = file.getPath();
-			Produce<Void> produce2 = Main.setdefaultOutPutDir(path);
+			Produce<Void> produce2 = Main.setDefaultOutPutDir(path);
 			if(showMessageDialogAtFailed(outputCard,produce2,""))return;
 			optionLabel2.setText(produce2.config.get(Main.msg)+":"+path);
 		});
@@ -358,7 +376,7 @@ public class MainWindow implements Log{
 		executeCard.add(vsds);
 		executeCard.add(batch);
 		
-		addButtomListener(vsds, b->{
+		addButtomListener(vsds, 说走咱就走->{
 			List<String> pageList = pageButtonList.stream()
 					.filter(bu->SelectedPage.equals(bu.getName()))
 					.map(JButton::getText).collect(toList());
@@ -367,7 +385,7 @@ public class MainWindow implements Log{
 				optionLabel1.setText("您还没有选择要处理的页面");
 				return;
 			}
-			pageButtonList.forEach(b1->System.out.println(b1.getText()));
+			//pageButtonList.forEach(b1->System.out.println(b1.getText()));
 			System.out.println(pageList);
 			Produce<Void> produce1 = Main.setSelectedPages(pageList);
 			if(showMessageDialogAtFailed(executeCard,produce1,""))return;
@@ -404,15 +422,15 @@ public class MainWindow implements Log{
 				+ "\nF&Q\n"
 				+ "\n它用在什么场景？\n"
 				+ "--软件设计流程图的初衷是如实的描述逻辑和关联系统的交互，因此泳道列表是必不可少的，当流程图较大，在visio中往往要上下翻动页面查看，"
-				+ "影响了效率和准确性。此时你会希望泳道或阶段的标题可以像excel那样冻结拆分，这正是本工具所提供的。\n"
+				+ "影响了效率和准确性。此时你会希望泳道或阶段的标题可以像excel那样固定列头或行，这正是本工具所提供的。\n"
 				+ "\n这会改动原来的vsd文件吗？\n"
 				+ "--不会，但是需要通过visio打开vsd文件以读取信息。\n"
 				+ "\n对运行环境的要求？\n"
-				+ "--需要jdk1.8,因为它使用了jdk1.8的一些新特性，兼容visio2007及以上版本，不支持IE，请将默认浏览器设为谷歌或其他\n"
+				+ "--需要jdk1.8，兼容visio2007及以上版本，不支持IE，请将默认浏览器设为谷歌或其他浏览器\n"
 				+ "\n可以在html中修改vsd文件吗？\n"
-				+ "--理论上可以实现，但是不是现在。你知道这不仅仅是时间问题，因为visio其实是个非常远古的软件，使用了非常封闭的文件格式(vsd)，"
-				+ "只有通过visio将vsd转为svg(W3C开放格式矢量图形)，才使得在浏览器中操作有了可能，"
-				+ "要知道即便是解析visio生成的svg也是让人非常烦躁的，so，我认为对一种封闭的格式重复造轮子是没有意义的，点到为止即可。");
+				+ "--理论上可以实现，但是不是现在。这不仅仅是时间问题，visio是个非常远古的软件，使用了封闭的文件格式(vsd)，"
+				+ "本程序通过visio将vsd转为svg(W3C开放格式矢量图形)，才使得在浏览器中操作有了可能，"
+				+ "要知道即便是解析visio生成的svg也是让人非常烦躁的，因此，对一种封闭的格式重复造轮子是没有意义的，点到为止即可。");
 	}
 	
 	
@@ -496,7 +514,6 @@ public class MainWindow implements Log{
 	 */
 	public static void changeTheme(String theme,Component frame) {
 		logTextArea.append("\n切换主题:"+theme);
-		bottomTextArea.setText("切换主题:"+theme);
 		try {
 			UIManager.setLookAndFeel(theme);
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
@@ -504,7 +521,7 @@ public class MainWindow implements Log{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			logTextArea.append("\n当前操作系统不支持该主题");
-			bottomTextArea.setText("当前操作系统不支持该主题");
+			JOptionPane.showMessageDialog(frame, "当前操作系统不支持该主题");
 			return;
 		}
 		SwingUtilities.updateComponentTreeUI(frame);
@@ -564,7 +581,6 @@ public class MainWindow implements Log{
 	
 	
 	static BiConsumer<JButton, String> UnSelectedPageFunc = (b,text)->{
-		System.out.println("con1");
 		if(text!=null) {
 			b.setText(text);
 		}
@@ -572,7 +588,6 @@ public class MainWindow implements Log{
 	};
 	
 	static BiConsumer<JButton, String> SelectedPageFunc = (b,text)->{
-		System.out.println("con2");
 		if(text!=null) {
 			b.setText(text);
 		}
@@ -789,6 +804,22 @@ public class MainWindow implements Log{
 	}
 
 	/**
+	 * 当点击菜单列表里某个菜单，对其余菜单的操作，通常用用于翻转取反
+	 * @param menuName
+	 * @param bfunc
+	 */
+	public static void toggleMenuChangeStyle(String menuName,Consumer<JButton> bfunc) {
+		if(menuList==null || menuName==null) {
+			return;
+		}
+		for(JButton menu:menuList) {
+			if(!menuName.equals(menu.getName())) {
+				bfunc.accept(menu);
+			}
+		}
+	}
+
+	/**
 	 * 添加按钮鼠标侦听器
 	 * @param button
 	 * @param operation 鼠标点击的操作，侦听线程中不能绑定耗时操作
@@ -830,21 +861,25 @@ public class MainWindow implements Log{
 		});
 	}
 	
-	
 	/**
-	 * 当点击菜单列表里某个菜单，对其余菜单的操作，通常用用于翻转取反
-	 * @param menuName
-	 * @param bfunc
+	 * 添加面本容器的层次侦听器，当面板显示层次发生改变式触发
+	 * @param panel
+	 * @param operation 对侦听面板的操作，侦听线程中不能绑定耗时操作
 	 */
-	public static void toggleMenuChangeStyle(String menuName,Consumer<JButton> bfunc) {
-		if(menuList==null || menuName==null) {
-			return;
-		}
-		for(JButton menu:menuList) {
-			if(!menuName.equals(menu.getName())) {
-				bfunc.accept(menu);
+	public static void addHierarchyListener(JPanel panel,Consumer<JPanel> operation) {
+		
+		panel.addHierarchyListener(new HierarchyListener() {
+
+			@Override
+			public void hierarchyChanged(HierarchyEvent e) {
+				if(e.getSource().equals(panel)) {
+					if(operation!=null) {
+						operation.accept(panel);
+					}
+				}
 			}
-		}
+		});
 	}
+	
 	
 }

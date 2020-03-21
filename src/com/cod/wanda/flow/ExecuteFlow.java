@@ -32,7 +32,7 @@ import visiotool.IVShapes;
 public class ExecuteFlow {
 	
 	private static IVDocument lastDoc; 
-	private static String lastPath;
+	private static String lastDocPath;
 	private static List<IVPage> lastPages;
 	private static List<String> selectedPages = new ArrayList<>();
 	
@@ -58,9 +58,9 @@ public class ExecuteFlow {
 		}
 		StringMap docConfig = new StringMap();
 		String path = config.get(UserOptions.sourceFilePath);
-		if(lastPath==null) {
-			lastPath = path;
-		}else if(lastPath.equals(path)) {
+		if(lastDocPath==null) {
+			lastDocPath = path;
+		}else if(lastDocPath.equals(path)) {
 			if(lastDoc!=null) {
 				return lastDoc;
 			}
@@ -394,6 +394,22 @@ public class ExecuteFlow {
 			}
 		} finally {
 			executeFlag = Standy;
+		}
+	}
+	
+	/**
+	 * 终止工作流
+	 */
+	public static void dispose() {
+		try {			
+			if(lastDoc!=null) {
+				//关闭document对象
+				lastDoc.close();
+				Log.info("lastDoc has been close");
+			}
+		}finally {
+			lastDoc = null;
+			lastPages = null;
 		}
 	}
 	
