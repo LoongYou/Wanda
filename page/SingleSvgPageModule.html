@@ -12,7 +12,7 @@
 
 .Swimlane {
 	display: inline-block;
-	background: #FFFFF0;
+	background: #DCDCDC;
 	border-style: solid;
 	border-width: 1px;
 	margin-left: -1px;
@@ -27,11 +27,12 @@
 	margin-top: 5px;
 	margin-left: 30px;
 	display: inline-block;
-	background: #FFFFF0;
+	background: #DCDCDC;
+	font-size: 15px;
 }
 
 .Separator {
-	background: #FFFFF0;
+	background: #DCDCDC;
 	border-style: solid;
 	border-width: 1px;
 	margin-bottom: -1px;
@@ -48,8 +49,10 @@
 	top:40px;
 	bottom:0px;
 	display: inline-block;
-	background: #FFFFF0;
+	background: #DCDCDC;
+	font-size: 15px;
 }
+
 </style>
 
 <script type="text/javascript">
@@ -142,6 +145,13 @@ window.onload = function(){
 			}
 		}
 	}
+	
+	/*设置泳道列表容器Swimlane-Phase-panel的大小，该属性决定标题的活动范围*/
+	var svgpanel = document.getElementById("svgpanel");
+	var SwimlanePhasepanel = document.getElementById("Swimlane-Phase-panel");
+	SwimlanePhasepanel.style.height = svgpanel.offsetHeight + 'px';
+	SwimlanePhasepanel.style.width = svgpanel.offsetWidth + 'px';
+	
 }
 
 /**
@@ -194,7 +204,7 @@ function computeHeightReduce(height){
 }
 
 /**
- * 批量动态生成shape对应的div，并添加到父容器中，设置父容器的定位为首个shape的定位
+ * 批量动态生成shape对应的div，并添加到父容器中，设置父容器的定位为首个shape的定位，func为处理这些div的对应shape的文本函数
  */
 function createVisioShapBatchByMID(MIDlist,className,parentID,func){
 	if(MIDlist){
@@ -263,7 +273,7 @@ function getSvgShapByMIDSelector(mID){
 
 
 /**
- * 生成Div
+ * 生成Div，并将其添加到指定父级
  */
 function createDiv(className,parent,func){
 	var div = document.createElement("DIV");
@@ -280,6 +290,7 @@ function createDiv(className,parent,func){
  * 设置泳道/标题列表位置
  */
 function setVisioDivPosition(svgShap,div){
+	/*svg图形边距有可能为负值，需要取绝对值*/
 	div.style.top = Math.abs(svgShap.top) + 'px';
 	div.style.left = Math.abs(svgShap.left) + 'px';
 	return div;
@@ -288,7 +299,7 @@ function setVisioDivPosition(svgShap,div){
 
 
 /**
- * 使用js方式实现，如果浏览器不支持sticky定位
+ * 使用js方式实现粘性标题，如果浏览器不支持sticky定位
  */
 function jsImplementsStickyPositioin(){
 
@@ -335,6 +346,36 @@ function getDPI(){
 	}
 	//alert("屏幕DPI:X="+XDPI+",Y="+YDPI);
 	return XDPI,YDPI;
+}
+
+//--------------------------鼠标拖动页面滚动-----------------------
+/*滚动信号量*/
+var scrollcount = 0;
+/*投放坐标x*/
+var dragx;
+/*投放坐标y*/
+var dragy;
+
+function initdrag() {
+	scrollcount = 1;
+	dragy = event.clientY;
+	dragx = event.clientX;
+	//document.body.setCapture(true);兼容IE，但是在chrome上已经被废弃
+}
+
+function startdrag() {
+	if (scrollcount == 1) {
+		window.scrollBy(dragx - event.clientX, dragy - event.clientY);
+		document.body.style.cursor = 'hand';
+		dragy = event.clientY;
+		dragx = event.clientX;
+	}
+}
+
+function enddrag() {
+	document.body.style.cursor = '';
+	scrollcount = 0;
+	//document.body.releaseCapture();兼容IE，但是在chrome上已经被废弃
 }
 
 </script>

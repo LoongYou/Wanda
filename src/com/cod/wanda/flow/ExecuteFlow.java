@@ -30,7 +30,7 @@ import visiotool.IVShape;
 import visiotool.IVShapes;
 
 public class ExecuteFlow {
-	
+	private static IVApplication lastApp;
 	private static IVDocument lastDoc; 
 	private static String lastDocPath;
 	private static List<IVPage> lastPages;
@@ -68,11 +68,11 @@ public class ExecuteFlow {
 		IVDocument doc = null;
 		try {			
 			// 创建Visio对象
-			IVApplication app = ClassFactory.createApplication();
+			lastApp = ClassFactory.createApplication();
 			// Visio对象设置为可见
-			app.visible(true);
+			lastApp.visible(true);
 			// 打开一个Visio文件
-			IVDocuments docs = app.documents();
+			IVDocuments docs = lastApp.documents();
 			doc = docs.open(path);
 			lastDoc = doc;
 			docConfig.put(Doc.path, doc.path());
@@ -398,9 +398,9 @@ public class ExecuteFlow {
 	}
 	
 	/**
-	 * 终止工作流
+	 * 关闭document
 	 */
-	public static void dispose() {
+	public static void closeDoc() {
 		try {			
 			if(lastDoc!=null) {
 				//关闭document对象
@@ -410,6 +410,20 @@ public class ExecuteFlow {
 		}finally {
 			lastDoc = null;
 			lastPages = null;
+		}
+	}
+	
+	/**
+	 * 退出visio app
+	 */
+	public static void quitApp() {
+		try {
+			if(lastApp!=null&&lastDoc==null) {
+				lastApp.quit();
+				Log.info("lastApp has been quit");
+			}
+		}finally {
+			lastApp = null;
 		}
 	}
 	

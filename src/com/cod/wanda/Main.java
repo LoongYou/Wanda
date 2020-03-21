@@ -152,7 +152,7 @@ public class Main implements Log{
 	 */
 	public static Produce<Void> setSelectedPages(List<String> pageList){
 		StringMap config = new StringMap();
-		try {			
+		try {
 			ExecuteFlow.setSelectedPageList(pageList);
 		}catch(Exception e) {
 			config.put(msg, e.toString());
@@ -194,7 +194,8 @@ public class Main implements Log{
 	public static void exit() {
 		textArea.append("正在关闭并释放document对象......");
 		try {			
-			ExecuteFlow.dispose();
+			ExecuteFlow.closeDoc();
+			ExecuteFlow.quitApp();
 		}catch(Exception e) {
 			Log.error("关闭document异常", e);
 		}

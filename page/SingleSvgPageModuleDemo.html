@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>SingleSvgPageModule</title>
+<title>SingleSvgPageModuleDemo</title>
 </head>
 
 <!-- 该页面是专门用来展示包含职能泳道的流程图，结合外部程序写入的数据，可以实现泳道或阶段的粘性标题视觉效果，
@@ -12,7 +12,7 @@
 
 .Swimlane {
 	display: inline-block;
-	background: #FFFFF0;
+	background: #DCDCDC;
 	border-style: solid;
 	border-width: 1px;
 	margin-left: -1px;
@@ -27,11 +27,12 @@
 	margin-top: 5px;
 	margin-left: 30px;
 	display: inline-block;
-	background: #FFFFF0;
+	background: #DCDCDC;
+	font-size: 15px;
 }
 
 .Separator {
-	background: #FFFFF0;
+	background: #DCDCDC;
 	border-style: solid;
 	border-width: 1px;
 	margin-bottom: -1px;
@@ -48,7 +49,8 @@
 	top:40px;
 	bottom:0px;
 	display: inline-block;
-	background: #FFFFF0;
+	background: #DCDCDC;
+	font-size: 15px;
 }
 
 </style>
@@ -148,6 +150,13 @@ window.onload = function(){
 			}
 		}
 	}
+	
+	/*设置泳道列表容器Swimlane-Phase-panel的大小，该属性决定标题的活动范围*/
+	var svgpanel = document.getElementById("svgpanel");
+	var SwimlanePhasepanel = document.getElementById("Swimlane-Phase-panel");
+	SwimlanePhasepanel.style.height = svgpanel.offsetHeight + 'px';
+	SwimlanePhasepanel.style.width = svgpanel.offsetWidth + 'px';
+	
 }
 
 /**
@@ -200,7 +209,7 @@ function computeHeightReduce(height){
 }
 
 /**
- * 批量动态生成shape对应的div，并添加到父容器中，设置父容器的定位为首个shape的定位
+ * 批量动态生成shape对应的div，并添加到父容器中，设置父容器的定位为首个shape的定位，func为处理这些div的对应shape的文本函数
  */
 function createVisioShapBatchByMID(MIDlist,className,parentID,func){
 	if(MIDlist){
@@ -269,7 +278,7 @@ function getSvgShapByMIDSelector(mID){
 
 
 /**
- * 生成Div
+ * 生成Div，并将其添加到指定父级
  */
 function createDiv(className,parent,func){
 	var div = document.createElement("DIV");
@@ -286,6 +295,7 @@ function createDiv(className,parent,func){
  * 设置泳道/标题列表位置
  */
 function setVisioDivPosition(svgShap,div){
+	/*svg图形边距有可能为负值，需要取绝对值*/
 	div.style.top = Math.abs(svgShap.top) + 'px';
 	div.style.left = Math.abs(svgShap.left) + 'px';
 	return div;
@@ -294,7 +304,7 @@ function setVisioDivPosition(svgShap,div){
 
 
 /**
- * 使用js方式实现，如果浏览器不支持sticky定位
+ * 使用js方式实现粘性标题，如果浏览器不支持sticky定位
  */
 function jsImplementsStickyPositioin(){
 

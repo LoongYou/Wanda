@@ -264,7 +264,12 @@ public class MainWindow implements Log{
 		
 		addButtomListener(selectFile, b->{
 			try {
-				File file = createFileChooser().getSelectedFile();
+				JFileChooser fileChooser = createFileChooser();
+			    int flat = fileChooser.showDialog(selectFile, "选择");
+			    if(flat!=JFileChooser.APPROVE_OPTION) {
+			    	return;
+			    }
+				File file = fileChooser.getSelectedFile();
 				if(file==null) return;
 				String path = file.getPath();
 				//此时必须等侦听线程执行完成后，GUI的修改才会生效
@@ -346,7 +351,12 @@ public class MainWindow implements Log{
 		});
 		
 		addButtomListener(vsds, 容不下我的痴->{
-			File file = createFileChooser().getSelectedFile();
+			JFileChooser fileChooser = createFileChooser();
+		    int flat = fileChooser.showDialog(vsds, "选择");
+		    if(flat!=JFileChooser.APPROVE_OPTION) {
+		    	return;
+		    }
+			File file = fileChooser.getSelectedFile();
 			if(file==null) return;
 			String path = file.getPath();
 			Produce<Void> produce1 = Main.setOutPutDir(path);
@@ -355,7 +365,12 @@ public class MainWindow implements Log{
 		});
 		
 		addButtomListener(def, 人若有志不怕迟->{
-			File file = createFileChooser().getSelectedFile();
+			JFileChooser fileChooser = createFileChooser();
+		    int flat = fileChooser.showDialog(vsds, "选择");
+		    if(flat!=JFileChooser.APPROVE_OPTION) {
+		    	return;
+		    }
+			File file = fileChooser.getSelectedFile();
 			if(file==null) return;
 			String path = file.getPath();
 			Produce<Void> produce2 = Main.setDefaultOutPutDir(path);
@@ -501,8 +516,8 @@ public class MainWindow implements Log{
 		if(OS_Name.indexOf(OS_Windows)>=0) {			
 			changeTheme(LookAndFeel02, fileChooser);
 		}
+		//设置模式为文件和文件夹都可以选择
 	    fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES );
-	    fileChooser.showDialog(new JLabel(), "选择");
 	    return fileChooser;
 	}
 
