@@ -343,11 +343,42 @@ function getDPI(){
 	return XDPI,YDPI;
 }
 
+
+//--------------------------鼠标拖动页面滚动-----------------------
+	/*滚动信号量*/
+	var scrollcount = 0;
+	/*投放坐标x*/
+	var dragx;
+	/*投放坐标y*/
+	var dragy;
+	
+	function initdrag() {
+		scrollcount = 1;
+		dragy = event.clientY;
+		dragx = event.clientX;
+		//document.body.setCapture(true);兼容IE，但是在chrome上已经被废弃
+	}
+
+	function startdrag() {
+		if (scrollcount == 1) {
+			window.scrollBy(dragx - event.clientX, dragy - event.clientY);
+			document.body.style.cursor = 'hand';
+			dragy = event.clientY;
+			dragx = event.clientX;
+		}
+	}
+
+	function enddrag() {
+		document.body.style.cursor = '';
+		scrollcount = 0;
+		//document.body.releaseCapture();兼容IE，但是在chrome上已经被废弃
+	}
+
 </script>
 
 
-
-<body>
+<!-- onselectstart必需，取消选中加蓝效果 -->
+<body onselectstart="return false;" onmousedown="initdrag()" onmousemove="startdrag()" onmouseup="enddrag()">
 	<!-- 现在html5img标签已经支持直接显示svg图片，但是对于svg内嵌的图片还不能良好显示，适用于纯矢量图和文本的svg图形 -->
 <!-- 	<img id="svg" class="" src="../temp/主流程.svg"
 		style="background-color: #FFF0AF" 
