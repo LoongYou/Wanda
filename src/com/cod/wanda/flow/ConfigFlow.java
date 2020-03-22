@@ -16,7 +16,7 @@ import com.cod.wanda.util.StringMap;
 
 public class ConfigFlow implements Log{
 	
-	static String propertiesFileName = "Wanda.properties";
+	public static final String propertiesFileName = "Wanda.properties";
 	
 	/**当前jar执行时所在的目录*/
 	public static final String userDir = System.getProperty("user.dir");
@@ -43,7 +43,6 @@ public class ConfigFlow implements Log{
 			
 			properties = PropertiesUtil.getProperties(userDir+"\\"+propertiesFileName);
 			PropertiesUtil.propertiesCopyToMap(properties, config, true);
-			//throw new IOException("shit");
 		} catch (IOException e) {
 			Log.errorEx("获取本地配置失败，将使用默认配置",e);
 		}
@@ -104,6 +103,10 @@ public class ConfigFlow implements Log{
 		return dependenetFiles;
 	}
 	
+	/**
+	 * 初始化默认输出目录，默认在D:\\WandaOutput,如果没有D盘，则放在用户更目录下的WandaOutput
+	 * @return
+	 */
 	public static String initDefOutPutDir() {
 		File file = new File(defaultDriver);
 		if(file.exists()) {
@@ -162,6 +165,18 @@ public class ConfigFlow implements Log{
 				dirFunc.accept(null);
 			}
 			return "该目录将会被创建";
+		}
+	}
+	
+	/**
+	 * 保存本地配置
+	 * @return
+	 * @throws IOException 
+	 */
+	public static void saveLocalConfig(StringMap config) throws IOException {
+		if(config!=null) {			
+			Properties properties = PropertiesUtil.saveMapToPropertiesFile(userDir+"\\"+propertiesFileName, config, "wanda properties");
+			 PropertiesUtil.propertiesCopyToMap(properties, config, false);
 		}
 	}
 	

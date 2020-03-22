@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JOptionPane;
+
 import com.cod.exception.CODException;
 import com.cod.ui.general.ScrollTextArea;
 import com.cod.util.Log;
@@ -39,19 +41,22 @@ public class Main implements Log{
 	 */
 	public void startup() throws CODException {
 		try {
-			initUi();
-			textArea.append("UI初始化完成");
 			List<String> dependenetFiles = ConfigFlow.initDependenetFiles();
 			List<String> localFiles = ConfigFlow.checkLocalFile(dependenetFiles);
 			if(localFiles.size()>0) {
-				textArea.append("依赖文件不存在:"+localFiles);
+				Log.error("依赖文件不存在:"+localFiles);
 			}
 			ConfigFlow.initLocalFile(localFiles);
 			ConfigFlow.initDefOutPutDir();
 			proConfig = ConfigFlow.getLocalConfig();
+			Log.info(proConfig);
+			initUi();
+			textArea.append("UI初始化完成");
 			textArea.append("配置项初始化完成");
 		}catch(Exception | CODException e) {
-			textArea.appendEx("启动工作流异常", e);
+			Log.error("启动工作流异常", e);
+			JOptionPane.showMessageDialog(null, "启动工作流异常"+e,"竟然启动失败",JOptionPane.ERROR_MESSAGE);
+			exit();
 		}
 	}
 	
@@ -67,6 +72,21 @@ public class Main implements Log{
 		return Sucess;
 	}
 		
+	/**
+	 * 获取配置项
+	 * @param key
+	 * @return
+	 */
+	public static String getConfig(String key) {
+		if(key!=null) {
+			return proConfig.get(key);
+		}else {
+			return null;
+		}
+	}
+	
+	
+	
 	/**
 	 * 打开文件
 	 * @param path
@@ -84,6 +104,7 @@ public class Main implements Log{
 			}
 			textArea.append("打开文件："+path);
 			proConfig.put(UserOptions.sourceFilePath, path);
+			Log.info(proConfig);
 			ExecuteFlow.getDoc(proConfig);
 		}catch(Exception | CODException e) {
 			config.put(msg, e.toString());
@@ -121,8 +142,6 @@ public class Main implements Log{
 	public static Produce<Void> setDefaultOutPutDir(String path) {
 		StringMap config = new StringMap();
 		config.put(msg, ConfigFlow.setDefOutPutDir(path));
-		System.out.println(ConfigFlow.getDefOutPutDir());
-		config.put(UserOptions.defOutPutDir,ConfigFlow.getDefOutPutDir());
 		proConfig.put(UserOptions.defOutPutDir,ConfigFlow.getDefOutPutDir());
 		Log.info(proConfig);
 		return Produce.out(config,null,Sucess);
@@ -137,13 +156,9 @@ public class Main implements Log{
 		StringMap config = new StringMap();
 		config.put(msg, ConfigFlow.setDir(path,null));
 		proConfig.put(UserOptions.outPutDir,path);
+		Log.info(proConfig);
 		return Produce.out(config,null,Sucess);
 	}
-	
-	public static String getDefOutputDir() {
-		return ConfigFlow.getDefOutPutDir();
-	}
-	
 	
 	/**
 	 * 设置已选择的页面
@@ -173,7 +188,7 @@ public class Main implements Log{
 		try {
 			String outPutDir = proConfig.get(UserOptions.outPutDir);
 			if(outPutDir==null || "".equals(outPutDir.trim())) {
-				ExecuteFlow.saveVisioToSvg(getDefOutputDir());
+				ExecuteFlow.saveVisioToSvg(proConfig.get(UserOptions.defOutPutDir));
 			}else {
 				ExecuteFlow.saveVisioToSvg(proConfig.get(UserOptions.outPutDir));
 			}
@@ -192,14 +207,16 @@ public class Main implements Log{
 	 * 退出程序
 	 */
 	public static void exit() {
-		textArea.append("正在关闭并释放document对象......");
-		try {			
+		try {
+			textArea.append("正在保存本地配置......");
+			ConfigFlow.saveLocalConfig(proConfig);
+			textArea.append("正在关闭并释放document对象......");
 			ExecuteFlow.closeDoc();
 			ExecuteFlow.quitApp();
 		}catch(Exception e) {
-			Log.error("关闭document异常", e);
+			Log.error("退出程序", e);
 		}
-		textArea.append("正在保存配置项......");
+		Log.info(proConfig);
 		textArea.append("正在退出......");
 	}
 	

@@ -102,9 +102,9 @@ public class MainWindow implements Log{
 	
 	/**主窗体*/
 	static JFrame frame;
-	/**日志文本域，如果以后有需求可让后台已debug模式输出*/
+	/**日志文本域，如果以后有需求可让后台已debug模式输出，一般由后台输出*/
 	public static ScrollTextArea logTextArea;
-	/**底部文本域，用于提供给后台在方法过程中直接发出提示信息，而不是由主界面控制，增加灵活性*/
+	/**底部文本域，提供简约信息，增加灵活性，由主界面控制*/
 	public static JTextArea bottomTextArea;
 	/**菜单按钮列表*/
 	static List<JButton> menuList;
@@ -262,9 +262,18 @@ public class MainWindow implements Log{
 		vsdsCard.add(selectFile);
 		vsdsCard.add(selectPage);
 		
-		addButtomListener(selectFile, b->{
+		addHierarchyListener(vsdsCard, 你是言而必行->{
+			optionLabel1.setText("上次文件路径:"+Main.getConfig(UserOptions.sourceFilePath));
+		});
+		
+		addButtomListener(selectFile, 还是逆来顺受->{
 			try {
 				JFileChooser fileChooser = createFileChooser();
+				String chooserPath = Main.getConfig(UserOptions.sourceFilePath);
+				if(chooserPath!=null) {
+					fileChooser.setCurrentDirectory(new File(chooserPath));
+				}
+				
 			    int flat = fileChooser.showDialog(selectFile, "选择");
 			    if(flat!=JFileChooser.APPROVE_OPTION) {
 			    	return;
@@ -324,12 +333,20 @@ public class MainWindow implements Log{
 	 * @param vsdsCard
 	 */
 	public static void initBatchCard(JPanel batchCard) {
-		JLabel optionLabel1 = new JLabel("文件路径:");
+		JLabel optionLabel1 = new JLabel("");
 		JButton selectDir = createCardButton("选择目录", "请选择需要转化的visio绘图文件(vsd、vsdx)",optionLabel1);
-		JLabel optionLabel2 = new JLabel("文件路径:");
+		JLabel optionLabel2 = new JLabel("");
 		JButton selectFile = createCardButton("选择文件", "请选择文件中的流程图页面进行转化", optionLabel2);
 		batchCard.add(selectDir);
 		batchCard.add(selectFile);
+		
+		addButtomListener(selectDir, 皇图霸业谈笑中->{
+			JOptionPane.showMessageDialog(batchCard, "这个需求应该没有，所以没实现这个功能");
+		});
+		addButtomListener(selectFile, 不胜人生一场醉->{
+			JOptionPane.showMessageDialog(batchCard, "这个需求应该没有，所以没实现这个功能");
+		});
+		
 	}
 	
 	/**
@@ -347,11 +364,16 @@ public class MainWindow implements Log{
 		outputCard.add(def);
 		
 		addHierarchyListener(outputCard, 这缭乱的城市->{
-			optionLabel2.setText(Main.getDefOutputDir());
+			optionLabel1.setText("上次文件路径:"+Main.getConfig(UserOptions.outPutDir));
+			optionLabel2.setText(Main.getConfig(UserOptions.defOutPutDir));
 		});
 		
 		addButtomListener(vsds, 容不下我的痴->{
 			JFileChooser fileChooser = createFileChooser();
+			String chooserPath = Main.getConfig(UserOptions.outPutDir);
+			if(chooserPath!=null) {
+				fileChooser.setCurrentDirectory(new File(chooserPath));
+			}
 		    int flat = fileChooser.showDialog(vsds, "选择");
 		    if(flat!=JFileChooser.APPROVE_OPTION) {
 		    	return;
@@ -366,6 +388,10 @@ public class MainWindow implements Log{
 		
 		addButtomListener(def, 人若有志不怕迟->{
 			JFileChooser fileChooser = createFileChooser();
+			String chooserPath = Main.getConfig(UserOptions.defOutPutDir);
+			if(chooserPath!=null) {
+				fileChooser.setCurrentDirectory(new File(chooserPath));
+			}
 		    int flat = fileChooser.showDialog(vsds, "选择");
 		    if(flat!=JFileChooser.APPROVE_OPTION) {
 		    	return;
@@ -401,7 +427,6 @@ public class MainWindow implements Log{
 				return;
 			}
 			//pageButtonList.forEach(b1->System.out.println(b1.getText()));
-			System.out.println(pageList);
 			Produce<Void> produce1 = Main.setSelectedPages(pageList);
 			if(showMessageDialogAtFailed(executeCard,produce1,""))return;
 			Produce<Void> produce2 = Main.executeVsds();
@@ -445,7 +470,7 @@ public class MainWindow implements Log{
 				+ "\n可以在html中修改vsd文件吗？\n"
 				+ "--理论上可以实现，但是不是现在。这不仅仅是时间问题，visio是个非常远古的软件，使用了封闭的文件格式(vsd)，"
 				+ "本程序通过visio将vsd转为svg(W3C开放格式矢量图形)，才使得在浏览器中操作有了可能，"
-				+ "要知道即便是解析visio生成的svg也是让人非常烦躁的，因此，对一种封闭的格式重复造轮子是没有意义的，点到为止即可。");
+				+ "要知道即便是解析visio生成的svg也是让人非常烦躁的，我就不重复造车轮了，点到为止即可。");
 	}
 	
 	
