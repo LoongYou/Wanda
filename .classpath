@@ -7,11 +7,11 @@
 			<attribute name="owner.project.facets" value="java"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/dom4j-2.1.1.jar"/>
 	<classpathentry kind="lib" path="com4j-20120426-2/args4j-2.0.1.jar"/>
 	<classpathentry kind="lib" path="com4j-20120426-2/com4j.jar"/>
 	<classpathentry kind="lib" path="com4j-20120426-2/tlbimp.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.17.jar"/>
+	<classpathentry kind="lib" path="lib/dom4j-2.1.1.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/CallOfDuty"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
