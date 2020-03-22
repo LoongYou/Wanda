@@ -12,10 +12,10 @@ import com.cod.exception.CODException;
 import com.cod.functions.Text;
 import com.cod.util.FileUtil;
 import com.cod.util.Log;
-import com.cod.wanda.commons.constants.FieldCollocations.Doc;
-import com.cod.wanda.commons.constants.FieldCollocations.HtmlPage;
-import com.cod.wanda.commons.constants.FieldCollocations.Shape;
-import com.cod.wanda.commons.constants.OptionCollocations.UserOptions;
+import com.cod.wanda.constants.FieldCollocations.Doc;
+import com.cod.wanda.constants.FieldCollocations.HtmlPage;
+import com.cod.wanda.constants.FieldCollocations.Shape;
+import com.cod.wanda.constants.OptionCollocations.UserOptions;
 import com.cod.wanda.util.StringMap;
 
 import visiotool.ClassFactory;
@@ -29,6 +29,11 @@ import visiotool.IVPages;
 import visiotool.IVShape;
 import visiotool.IVShapes;
 
+/**
+ * 工作流：执行
+ * @author Yulong
+ *
+ */
 public class ExecuteFlow {
 	private static IVApplication lastApp;
 	private static IVDocument lastDoc; 

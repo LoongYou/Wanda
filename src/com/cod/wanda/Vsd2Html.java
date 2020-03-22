@@ -20,7 +20,11 @@ import visiotool.IVPage;
 import visiotool.IVShape;
 import visiotool.IVShapes;
 
-
+/**
+ * 用于技术验证
+ * @author Yulong
+ *
+ */
 public class Vsd2Html {
 	public static void main(String[] args) {
 		System.out.println("start");

@@ -43,9 +43,14 @@ import javax.swing.UnsupportedLookAndFeelException;
 import com.cod.ui.general.ScrollTextArea;
 import com.cod.util.Log;
 import com.cod.wanda.Main;
-import com.cod.wanda.commons.constants.OptionCollocations.UserOptions;
+import com.cod.wanda.constants.OptionCollocations.UserOptions;
 import com.cod.wanda.util.Produce;
 
+/**
+ * 主窗体程序
+ * @author Yulong
+ *
+ */
 public class MainWindow implements Log{
 	
 	/**操作系统名称*/

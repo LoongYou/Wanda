@@ -1,4 +1,4 @@
-package com.cod.wanda.commons.constants;
+package com.cod.wanda.constants;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;

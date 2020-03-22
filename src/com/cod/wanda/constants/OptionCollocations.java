@@ -1,4 +1,4 @@
-package com.cod.wanda.commons.constants;
+package com.cod.wanda.constants;
 
 /**
  * 选项组合类

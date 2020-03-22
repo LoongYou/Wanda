@@ -1,0 +1,60 @@
+<html>
+<head>
+<title>Untitled Document</title>
+<meta charset="UTF-8">
+<meta name="author" content="yulong&VisitGit:LoongYou/Wanda" />
+
+<script language="JavaScript">
+	var scrollcount = 0;
+	var dragx;
+	var dragy;
+	
+	function initdrag() {
+		scrollcount = 1;
+		dragy = event.clientY;
+		dragx = event.clientX;
+		//document.body.setCapture(true);
+	}
+
+	function startdrag() {
+		if (scrollcount == 1) {
+			window.scrollBy(dragx - event.clientX, dragy - event.clientY);
+			document.body.style.cursor = 'hand';
+			dragy = event.clientY;
+			dragx = event.clientX;
+		}
+	}
+
+	function enddrag() {
+		document.body.style.cursor = '';
+		scrollcount = 0;
+		//document.body.releaseCapture();
+	}
+</script>
+</head>
+
+<body onselectstart="return false;"
+	onmousedown="initdrag()" onmousemove="startdrag()"
+	onmouseup="enddrag()">
+	<p>hello world hello world hello world hello world hello world hello world hello world hello world hello world</p>
+	<p>hello world hello world hello world hello world hello world hello world hello world hello world hello world</p>
+	<p>hello world hello world hello world hello world hello world hello world hello world hello world hello world</p>
+	<p>hello world hello world hello world hello world hello world hello world hello world hello world hello world</p>
+	<p>hello world hello world hello world hello world hello world hello world hello world hello world hello world</p>
+	<p>hello world hello world hello world hello world hello world hello world hello world hello world hello world</p>
+	<p>hello world hello world hello world hello world hello world hello world hello world hello world hello world</p>
+	<p>hello world hello world hello world hello world hello world hello world hello world hello world hello world</p>
+	<p>hello world hello world hello world hello world hello world hello world hello world hello world hello world</p>
+	<p>hello world hello world hello world hello world hello world hello world hello world hello world hello world</p>
+	<p>hello world hello world hello world hello world hello world hello world hello world hello world hello world</p>
+	<p>hello world hello world hello world hello world hello world hello world hello world hello world hello world</p>
+	<p>hello world hello world hello world hello world hello world hello world hello world hello world hello world</p>
+	<p>hello world hello world hello world hello world hello world hello world hello world hello world hello world</p>
+	<p>hello world hello world hello world hello world hello world hello world hello world hello world hello world</p>
+	<p>hello world hello world hello world hello world hello world hello world hello world hello world hello world</p>
+	<p>hello world hello world hello world hello world hello world hello world hello world hello world hello world</p>
+	<p>hello world hello world hello world hello world hello world hello world hello world hello world hello world</p>
+	<p>hello world hello world hello world hello world hello world hello world hello world hello world hello world</p>
+	<p>hello world hello world hello world hello world hello world hello world hello world hello world hello world</p>
+</body>
+</html>

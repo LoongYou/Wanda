@@ -9,7 +9,7 @@ import javax.swing.JOptionPane;
 import com.cod.exception.CODException;
 import com.cod.ui.general.ScrollTextArea;
 import com.cod.util.Log;
-import com.cod.wanda.commons.constants.OptionCollocations.UserOptions;
+import com.cod.wanda.constants.OptionCollocations.UserOptions;
 import com.cod.wanda.flow.ConfigFlow;
 import com.cod.wanda.flow.ExecuteFlow;
 import com.cod.wanda.ui.MainWindow;
@@ -18,6 +18,11 @@ import com.cod.wanda.util.StringMap;
 
 import visiotool.IVPage;
 
+/**
+ * 后台主程序
+ * @author Yulong
+ *
+ */
 public class Main implements Log{
 	
 	/**程序配置*/

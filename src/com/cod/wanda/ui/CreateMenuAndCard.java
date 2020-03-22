@@ -4,6 +4,11 @@ import java.util.List;
 
 import javax.swing.JPanel;
 
+/**
+ * 创建菜单和对应的卡片
+ * @author Yulong
+ *
+ */
 @FunctionalInterface
 public interface CreateMenuAndCard {
 

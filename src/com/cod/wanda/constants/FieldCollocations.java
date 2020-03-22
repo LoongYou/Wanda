@@ -1,4 +1,4 @@
-package com.cod.wanda.commons.constants;
+package com.cod.wanda.constants;
 
 /**
  * 属性组合类,原则上属性名首字母小写

@@ -14,6 +14,11 @@ import com.cod.util.Log;
 import com.cod.util.PropertiesUtil;
 import com.cod.wanda.util.StringMap;
 
+/**
+ * 工作流：配置
+ * @author Yulong
+ *
+ */
 public class ConfigFlow implements Log{
 	
 	public static final String propertiesFileName = "Wanda.properties";
