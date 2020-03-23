@@ -28,5 +28,8 @@ regsvr32 C:\com4j-amd64.dll
 4、把args4j-2.0.1.jar，tlbimp.jar，com4j.jar3个jar文件导入java工程中即可（我已经将所需jar打包在lib包中，只需将项目导入eclipse即可）。
 
 
+版本更新
+2020/03/24 1.1
+finish the work!
 
 
