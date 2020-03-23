@@ -53,6 +53,32 @@ import com.cod.wanda.util.Produce;
  */
 public class MainWindow implements Log{
 	
+	public static final String neverBug = "<html>"
+			+ "*******************************************************************<br>"
+			+ "**........................_ooOoo_................................**<br>"
+			+ "**.......................o8888888o ...............................**<br>"
+			+ "**.......................88\" .  \"88..............................**<br>"
+			+ "**.......................(| ^_^  |).................................**<br>"
+			+ "**........................O\\  =  /O...............................**<br>"
+			+ "**....................____/`---'\\____.............................**<br>"
+			+ "**...................'  \\\\|     |//  `............................**<br>"
+			+ "**................./  \\\\|||  :  |||//  \\.........................**<br>"
+			+ "**................../  _||||| -:- |||||-  \\......................**<br>"
+			+ "**...............|   | \\\\\\  -  /// |   |........................**<br>"
+			+ "**................| \\_|  ''\\---/''  |   |........................**<br>"
+			+ "**................\\  .-\\__  `-`  ___/-. /........................**<br>"
+			+ "**................___`. .'  /--.--\\  `. . ___.....................**<br>"
+			+ "**...........\"\" '<  `.___\\_<|>_/___.'  >'\"\"...................**<br>"
+			+ "**..........| | :  `- \\`.;`\\ _ /`;.`/ - ` : | |...................**<br>"
+			+ "**..........\\  \\ `-.   \\_ __\\ /__ _/   .-` /  /.................**<br>"
+			+ "**.....========`-.____`-.___\\_____/___.-`____.-'========...........**<br>"
+			+ "**..........................`=---='.................................**<br>"
+			+ "**......^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^..........**<br>"
+			+ "**...............佛祖保佑                      永无BUG     永不修改                   **<br>"
+			+ "************************************************************************"
+			+ "</html>";
+	
+	
 	/**操作系统名称*/
 	private static final String OS_Name = System.getProperty("os.name").toLowerCase();
 	private static final String OS_Windows = "windows";
@@ -197,6 +223,7 @@ public class MainWindow implements Log{
 		initLeftScrollPane(leftScrollPane);
 		initMenuButtom(menuList);
 		initRightPanel(rigthPanel);
+		initProfileCard(cardMap.get(Profile));
 		initVsdsCard(cardMap.get(Vsds));
 		initBatchCard(cardMap.get(Batch));
 		initOutputCard(cardMap.get(Output));
@@ -251,6 +278,20 @@ public class MainWindow implements Log{
 		bottomPanel.add(bottomTextArea,BorderLayout.NORTH);
 		bottomTextArea.setRows(1);
 	}
+	
+	/**
+	 * 初始化profileCard
+	 * @param profileCard
+	 */
+	public static void initProfileCard(JPanel profileCard) {
+		JLabel optionLabel1 = new JLabel("[vsd文件阅览工具]这个程序很小，不需要什么配置\n");
+		JLabel optionLabel2 = new JLabel(neverBug);
+		profileCard.add(optionLabel1);
+		profileCard.add(optionLabel2);
+		setUniformFont(optionLabel1);
+		setUniformFont(optionLabel2);
+	}
+	
 	
 	/**
 	 * 初始化VsdsCard
