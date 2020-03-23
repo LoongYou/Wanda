@@ -258,20 +258,62 @@ public class MainWindow implements Log{
 	 */
 	public static void initVsdsCard(JPanel vsdsCard) {
 		JLabel optionLabel1 = new JLabel("文件路径:");
-		JButton selectFile = createCardButton("选择文件", "<html>请选择需要转化的visio绘图文件vsd...<br>选择文件后会为您自动通过visio打开vsd文件，"
+		JButton selectFile = createCardButton("选择文件", "<html>点击这里选择需要转化的visio绘图文件vsd...<br>选择文件后会为您自动通过visio打开vsd文件，"
 				+ "如果您之前已打开此vsd文件，请先关闭，因为一个visio document只允许一个实例</html>", optionLabel1);
 		JLabel optionLabel2 = new JLabel("点击下方选择要处理的页面");
-		JButton selectPage = createCardButton("选择页面", "<html>请选择文件中的流程图页面进行转化...<br>此时您可以在visio修改vsd，对于转化会立刻生效</html>", optionLabel2);
+		JButton selectPage = createCardButton("选择页面", "<html>点击下方的流程图页面进行转化...<br>此时您可以在visio修改vsd，对于转化会立刻生效</html>", optionLabel2);
+		JButton openFileButton = createNormalButton("直接/重新打开文件(如果已关闭文件，可以再次打开)");
 		JButton selectBotton = createPageAllButton();
 		selectPage.add(selectBotton);
 		vsdsCard.add(selectFile);
 		vsdsCard.add(selectPage);
 		
+		// 打开文件操作函数
+		Consumer<String> openFile = path->{
+			Produce<Void> produce1 = Main.openFile(path);
+			if(showMessageDialogAtFailed(vsdsCard,produce1,
+					"提示：请先关闭打开的vsd文件，因为只能打开一个document实例。"))return;
+			
+			Produce<Map<String, Integer>> produce2 = Main.getPagesInfo();
+			if(showMessageDialogAtFailed(vsdsCard,produce2,
+					"提示：在转换完成前请不要关闭visio。"))return;
+			
+			//每次触发文件选择需要清空上次添加的页面按钮
+			for(int i = 0;i<pageButtonList.size();i++) {
+				vsdsCard.remove(pageButtonList.get(i));
+			}
+			pageButtonList.clear();
+			
+			//获取页面名称并添加对应的选择按钮，此时index已经后台排好序
+			Map<String, Integer> pageMap = produce2.product;
+			//由于页面按钮添加会在Flow布局容器末尾，需要先计算index再添加，防止按钮丢失（藏起来了）
+			vsdsCard.updateUI();
+			pageMap.forEach((pageName,谨以此歌代泣)->{
+				JButton pageButton = createSelectPageButton(pageName);
+				pageButtonList.add(pageButton);
+				vsdsCard.add(pageButton);
+			});
+		};
+		
+		// 每次激活卡片，刷新文件路径
 		addHierarchyListener(vsdsCard, 你是言而必行->{
-			optionLabel1.setText("上次文件路径:"+Main.getConfig(UserOptions.sourceFilePath));
+			String path = Main.getConfig(UserOptions.sourceFilePath);
+			optionLabel1.setText("上次文件路径:"+path==null?"":path);
+			// 如果文件路径存在，则添加打开文件按钮到顺序为2的位置
+			if(path!=null) {
+				vsdsCard.add(openFileButton,1);
+			}
 		});
 		
-		addButtomListener(selectFile, 还是逆来顺受->{
+		// 点击直接打开文件按钮，则打开文件
+		addButtomListener(openFileButton, 还是逆来顺受->{
+			setupOnTop();		
+			openFile.accept(Main.getConfig(UserOptions.sourceFilePath));
+			cancelOnTop();
+		});
+		
+		// 选择文件后自动打开
+		addButtomListener(selectFile, 难道选择平凡才是解脱->{
 			try {
 				JFileChooser fileChooser = createFileChooser();
 				String chooserPath = Main.getConfig(UserOptions.sourceFilePath);
@@ -289,33 +331,14 @@ public class MainWindow implements Log{
 				//此时必须等侦听线程执行完成后，GUI的修改才会生效
 				optionLabel1.setText("文件路径:"+path);
 				setupOnTop();
-				Produce<Void> produce1 = Main.openFile(path);
-				if(showMessageDialogAtFailed(vsdsCard,produce1,
-						"提示：请先关闭打开的vsd文件，因为只能打开一个document实例。"))return;
-				
-				Produce<Map<String, Integer>> produce2 = Main.getPagesInfo();
-				if(showMessageDialogAtFailed(vsdsCard,produce2,
-						"提示：在转换完成前请不要关闭visio。"))return;
-				
-				//每次触发文件选择需要清空上次添加的页面按钮
-				for(int i = 0;i<pageButtonList.size();i++) {
-					vsdsCard.remove(pageButtonList.get(i));
-				}
-				pageButtonList.clear();
-				
-				//获取页面名称并添加对应的选择按钮，此时index已经后台排好序
-				Map<String, Integer> pageMap = produce2.product;
-				pageMap.forEach((pageName,失明前我曾见过极光彩虹和海洋)->{
-					JButton pageButton = createSelectPageButton(pageName);
-					pageButtonList.add(pageButton);
-					vsdsCard.add(pageButton);
-				});
+				openFile.accept(path);
 				cancelOnTop();
 			}catch(Exception e) {
 				Log.error(e);
 			}
 		});
 		
+		// 点击全选或取消全选
 		addButtomListener(selectBotton, b -> {
 			if ("0".equals(b.getName())) {
 				pageButtonList.forEach(pageButton -> {
@@ -345,13 +368,8 @@ public class MainWindow implements Log{
 		batchCard.add(selectDir);
 		batchCard.add(selectFile);
 		
-		addButtomListener(selectDir, 皇图霸业谈笑中->{
-			JOptionPane.showMessageDialog(batchCard, "这个需求应该没有，所以没实现这个功能");
-		});
-		addButtomListener(selectFile, 不胜人生一场醉->{
-			JOptionPane.showMessageDialog(batchCard, "这个需求应该没有，所以没实现这个功能");
-		});
-		
+		addButtomListener(selectDir, 皇图霸业谈笑中->JOptionPane.showMessageDialog(batchCard, "这个需求应该没有，所以没实现这个功能"));
+		addButtomListener(selectFile, 不胜人生一场醉->JOptionPane.showMessageDialog(batchCard, "这个需求应该没有，所以没实现这个功能"));
 	}
 	
 	/**
@@ -369,8 +387,10 @@ public class MainWindow implements Log{
 		outputCard.add(def);
 		
 		addHierarchyListener(outputCard, 这缭乱的城市->{
-			optionLabel1.setText("上次文件路径:"+Main.getConfig(UserOptions.outPutDir));
-			optionLabel2.setText(Main.getConfig(UserOptions.defOutPutDir));
+			String p1 = Main.getConfig(UserOptions.outPutDir);
+			String p2 = Main.getConfig(UserOptions.defOutPutDir);
+			optionLabel1.setText("上次输出目录:"+p1==null?"":p1);
+			optionLabel2.setText("默认目录："+p2==null?"":p2);
 		});
 		
 		addButtomListener(vsds, 容不下我的痴->{
@@ -381,6 +401,8 @@ public class MainWindow implements Log{
 			}
 		    int flat = fileChooser.showDialog(vsds, "选择");
 		    if(flat!=JFileChooser.APPROVE_OPTION) {
+		    	Main.setOutPutDir(null);
+		    	optionLabel1.setText("使用默认目录");
 		    	return;
 		    }
 			File file = fileChooser.getSelectedFile();
@@ -391,7 +413,7 @@ public class MainWindow implements Log{
 			optionLabel1.setText(produce1.config.get(Main.msg)+":"+path);
 		});
 		
-		addButtomListener(def, 人若有志不怕迟->{
+		addButtomListener(def, 失明前我曾见过极光彩虹和海洋->{
 			JFileChooser fileChooser = createFileChooser();
 			String chooserPath = Main.getConfig(UserOptions.defOutPutDir);
 			if(chooserPath!=null) {
@@ -425,7 +447,8 @@ public class MainWindow implements Log{
 		addButtomListener(vsds, 说走咱就走->{
 			List<String> pageList = pageButtonList.stream()
 					.filter(bu->SelectedPage.equals(bu.getName()))
-					.map(JButton::getText).collect(toList());
+					.map(JButton::getText)
+					.collect(toList());
 			optionLabel1.setText("已选择页面："+pageList);
 			if(pageList==null || pageList.size()==0) {
 				optionLabel1.setText("您还没有选择要处理的页面");
@@ -438,6 +461,9 @@ public class MainWindow implements Log{
 			if(showMessageDialogAtFailed(executeCard,produce2,""))return;
 			showMessageDialogAtSucess(executeCard, produce2, "页面转化完成");
 		});
+		
+		addButtomListener(batch, 但这是条漫长的路->JOptionPane.showMessageDialog(executeCard, "这个需求应该没有，所以没实现这个功能"));
+		
 	}
 	
 
@@ -473,9 +499,9 @@ public class MainWindow implements Log{
 				+ "\n对运行环境的要求？\n"
 				+ "--需要jdk1.8，兼容visio2007及以上版本，不支持IE，请将默认浏览器设为谷歌或其他浏览器\n"
 				+ "\n可以在html中修改vsd文件吗？\n"
-				+ "--理论上可以实现，但是不是现在。这不仅仅是时间问题，visio是个非常远古的软件，使用了封闭的文件格式(vsd)，"
-				+ "本程序通过visio将vsd转为svg(W3C开放格式矢量图形)，才使得在浏览器中操作有了可能，"
-				+ "要知道即便是解析visio生成的svg也是让人非常烦躁的，我就不重复造车轮了，点到为止即可。");
+				+ "--理论上可以实现，但是不是现在。visio是个非常远古的软件，使用了封闭的文件格式(vsd)，"
+				+ "本程序通过visio将vsd转为svg(W3C开放格式矢量图形)，才使得在浏览器中操作有了可能，这不仅仅是时间问题，"
+				+ "要知道即便是解析visio生成的svg也是让人非常烦躁的，又谈何去做兼容？不重复造车轮了，点到为止即可。");
 	}
 	
 	
@@ -584,6 +610,24 @@ public class MainWindow implements Log{
 	}
 
 
+	/**
+	 * 创建正常按钮
+	 * @return
+	 */
+	public static JButton createNormalButton(String text){
+		JButton button = new JButton(text);
+		setUniformButton(button);
+		return button;
+	}
+	
+	
+	public static void setUniformButton(JButton button) {
+		setUniformFont(button);
+		changeTheme(LookAndFeel00, button);
+		button.setBackground(Color.WHITE);
+	}
+	
+	
 	/**
 	 * 创建翻转按钮，通过两次点击，对其的Name属性做两种标志的翻转
 	 * @param name1 初始标识

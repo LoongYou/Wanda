@@ -368,7 +368,7 @@ public class ExecuteFlow {
 				// 将当前page保存为svg到对应的目录下
 				try {					
 					//只处理已选择的页面
-					if(!selectedPages.contains(page.nameU())) {
+					if(!selectedPages.contains(page.name())) {
 						continue;
 					}
 					page.export(svgFilePath);

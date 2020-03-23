@@ -25,8 +25,9 @@ import visiotool.IVPage;
  */
 public class Main implements Log{
 	
-	/**程序配置*/
+	/**程序配置,原则上，每一次交互，都应当保存用户的选择或输入*/
 	private static StringMap proConfig;
+	@SuppressWarnings("unused")
 	private static MainWindow mainWindow;
 	private static ScrollTextArea textArea;
 	
@@ -52,8 +53,10 @@ public class Main implements Log{
 				Log.error("依赖文件不存在:"+localFiles);
 			}
 			ConfigFlow.initLocalFile(localFiles);
-			ConfigFlow.initDefOutPutDir();
 			proConfig = ConfigFlow.getLocalConfig();
+			if(proConfig.get(UserOptions.defOutPutDir)==null) {				
+				proConfig.put(UserOptions.defOutPutDir, ConfigFlow.initDefOutPutDir());
+			}
 			Log.info(proConfig);
 			initUi();
 			textArea.append("UI初始化完成");
@@ -159,10 +162,21 @@ public class Main implements Log{
 	 */
 	public static Produce<Void> setOutPutDir(String path) {
 		StringMap config = new StringMap();
-		config.put(msg, ConfigFlow.setDir(path,null));
 		proConfig.put(UserOptions.outPutDir,path);
-		Log.info(proConfig);
-		return Produce.out(config,null,Sucess);
+		try {
+			if(path==null) {
+				config.put(msg, "输入路径为空，使用默认目录");
+			}else {				
+				config.put(msg, ConfigFlow.setDir(path,null));
+			}
+			Log.info(proConfig);
+		}catch(Exception e) {
+			config.put(msg, e.toString());
+			Log.error(config);
+			textArea.appendEr("设置输出路径异常", e);
+			return Produce.out(config,null,Failed);
+		}
+		return Produce.out(config, null,Sucess);
 	}
 	
 	/**
@@ -182,6 +196,13 @@ public class Main implements Log{
 		}
 		return Produce.out(config,null,Sucess);
 	}
+	
+//	public static String getDefOutputDir() {
+//		String def = proConfig.get(UserOptions.defOutPutDir);
+//		if(def==null) {
+//			init
+//		}
+//	}
 	
 	
 	/**

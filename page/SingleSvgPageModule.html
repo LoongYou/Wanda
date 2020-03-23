@@ -54,6 +54,7 @@
 	font-size: 15px;
 }
 
+
 </style>
 
 <script type="text/javascript">
@@ -87,7 +88,7 @@ window.onload = function(){
 	 		div1.textContent = desc.textContent;
 		}else{
 			/* 如果获取标题为空，则会导致定位误差，需要设置一个描述 */
-			div1.textContent = "无标题";
+			div1.textContent = "...";
 		}
 	});
 	/* 设置阶段标题  */
@@ -100,7 +101,7 @@ window.onload = function(){
 	 		div1.textContent = desc.textContent;
 		}else{
 			/* 如果获取标题为空，则会导致定位误差，需要设置一个描述 */
-			div1.textContent = "无标题";
+			div1.textContent = "...";
 		}
 	});
 	
@@ -383,7 +384,8 @@ function enddrag() {
 
 
 
-<body>
+<!-- onselectstart必需，取消选中加蓝效果 -->
+<body onselectstart="return false;" onmousedown="initdrag()" onmousemove="startdrag()" onmouseup="enddrag()">
 	<!-- 现在html5img标签已经支持直接显示svg图片，但是对于svg内嵌的图片还不能良好显示，适用于纯矢量图和文本的svg图形 -->
 <!-- 	<img id="svg" class="" src="../temp/主流程.svg"
 		style="background-color: #FFF0AF" 
