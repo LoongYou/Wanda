@@ -479,7 +479,7 @@ public class MainWindow implements Log{
 	 */
 	public static void initExecuteCard(JPanel executeCard) {
 		JLabel optionLabel1 = new JLabel("");
-		JButton vsds = createCardButton("单个文件", "转化单个的文件中选定的页面(不要关闭visio)",optionLabel1);
+		JButton vsds = createCardButton("单个文件", "转化单个的文件中选定的页面(不要关闭visio)，执行完后会自动打开",optionLabel1);
 		JLabel optionLabel2 = new JLabel("");
 		JButton batch = createCardButton("批量文件", "对批量选择的文件的所有页面进行转化(请不要关闭visio)", optionLabel2);
 		executeCard.add(vsds);
