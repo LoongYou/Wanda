@@ -27,6 +27,7 @@ regsvr32 C:\com4j-amd64.dll，再重做第三步即可
 
 4.开发的时候把args4j-2.0.1.jar，tlbimp.jar，com4j.jar3个jar文件导入java工程中即可（我已经将所需jar打包在lib包中，只需将项目导入eclipse即可）。
 
+5.开发完成导出可执行jar的时候，建议使用eclipse导出，可以省去编写MANIFEST的麻烦，并且选择package方式将lib放入单独的文件夹，以后替换局部jar包很方便，系统兼容性也很好。
 
 ##版本更新
 - 2020/03/24 1.1

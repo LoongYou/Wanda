@@ -299,7 +299,7 @@ public class ExecuteFlow {
 		Log.info(var1);
 		Log.info(var2);
 		StringBuilder sb = new StringBuilder();
-		sb.append(var1).append(";\n").append(var2).append(";\n");
+		sb.append(var1).append(";\n").append(var2).append(";\n").append("document.title='"+page.name()+"';\n");
 		return sb.toString();
 	}
 	
