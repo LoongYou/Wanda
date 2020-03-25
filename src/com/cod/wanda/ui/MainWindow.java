@@ -207,7 +207,7 @@ public class MainWindow implements Log{
 		
 		changeTheme(LookAndFeel00, frame);
 		frame.setVisible(true);
-		
+		bottomTextArea.setText("准备就绪");
 		hideTopTip();
 	}
 	
@@ -285,10 +285,11 @@ public class MainWindow implements Log{
 		
 		// 打开文件操作函数
 		Consumer<String> openFile = path->{
+			bottomTextArea.setText("正在打开文件...");
 			Produce<Void> produce1 = Main.openFile(path);
 			if(showMessageDialogAtFailed(vsdsCard,produce1,
 					"提示：请先关闭打开的vsd文件，因为只能打开一个document实例。"))return;
-			
+			bottomTextArea.setText("正在读取页面...");
 			Produce<Map<String, Integer>> produce2 = Main.getPagesInfo();
 			if(showMessageDialogAtFailed(vsdsCard,produce2,
 					"提示：在转换完成前请不要关闭visio。"))return;
@@ -312,6 +313,7 @@ public class MainWindow implements Log{
 		
 		// 每次激活卡片，刷新文件路径
 		addHierarchyListener(vsdsCard, 你是言而必行->{
+			bottomTextArea.setText("刷新路径");
 			String path = Main.getConfig(UserOptions.sourceFilePath);
 			optionLabel1.setText("上次文件路径:"+path==null?"":path);
 			// 如果文件路径存在，则添加打开文件按钮到顺序为2的位置
@@ -322,7 +324,8 @@ public class MainWindow implements Log{
 		
 		// 点击直接打开文件按钮，则打开文件
 		addButtomListener(openFileButton, 还是逆来顺受->{
-			setupOnTop();		
+			setupOnTop();
+			bottomTextArea.setText("直接打开文件");
 			openFile.accept(Main.getConfig(UserOptions.sourceFilePath));
 			cancelOnTop();
 		});
@@ -331,6 +334,7 @@ public class MainWindow implements Log{
 		addButtomListener(selectFile, 难道选择平凡才是解脱->{
 			try {
 				JFileChooser fileChooser = createFileChooser();
+				bottomTextArea.setText("定位到上一次路径");
 				String chooserPath = Main.getConfig(UserOptions.sourceFilePath);
 				if(chooserPath!=null) {
 					fileChooser.setCurrentDirectory(new File(chooserPath));
@@ -402,6 +406,7 @@ public class MainWindow implements Log{
 		outputCard.add(def);
 		
 		addHierarchyListener(outputCard, 这缭乱的城市->{
+			bottomTextArea.setText("刷新目录");
 			String p1 = Main.getConfig(UserOptions.outPutDir);
 			String p2 = Main.getConfig(UserOptions.defOutPutDir);
 			optionLabel1.setText("上次输出目录:"+p1==null?"":p1);
@@ -410,6 +415,7 @@ public class MainWindow implements Log{
 		
 		addButtomListener(vsds, 容不下我的痴->{
 			JFileChooser fileChooser = createFileChooser();
+			bottomTextArea.setText("定位到上一次路径");
 			String chooserPath = Main.getConfig(UserOptions.outPutDir);
 			if(chooserPath!=null) {
 				fileChooser.setCurrentDirectory(new File(chooserPath));
@@ -430,6 +436,7 @@ public class MainWindow implements Log{
 		
 		addButtomListener(def, 失明前我曾见过极光彩虹和海洋->{
 			JFileChooser fileChooser = createFileChooser();
+			bottomTextArea.setText("定位到上一次路径");
 			String chooserPath = Main.getConfig(UserOptions.defOutPutDir);
 			if(chooserPath!=null) {
 				fileChooser.setCurrentDirectory(new File(chooserPath));
@@ -470,8 +477,10 @@ public class MainWindow implements Log{
 				return;
 			}
 			//pageButtonList.forEach(b1->System.out.println(b1.getText()));
+			bottomTextArea.setText("设置页面");
 			Produce<Void> produce1 = Main.setSelectedPages(pageList);
 			if(showMessageDialogAtFailed(executeCard,produce1,""))return;
+			bottomTextArea.setText("执行转换");
 			Produce<Void> produce2 = Main.executeVsds();
 			if(showMessageDialogAtFailed(executeCard,produce2,""))return;
 			showMessageDialogAtSucess(executeCard, produce2, "页面转化完成");
@@ -586,14 +595,14 @@ public class MainWindow implements Log{
 	 * @param frame
 	 */
 	public static void changeTheme(String theme,Component frame) {
-		logTextArea.append("\n切换主题:"+theme);
+		bottomTextArea.setText("切换主题:"+theme);
 		try {
 			UIManager.setLookAndFeel(theme);
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
 				| UnsupportedLookAndFeelException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			logTextArea.append("\n当前操作系统不支持该主题");
+			bottomTextArea.setText("当前操作系统不支持该主题");
 			JOptionPane.showMessageDialog(frame, "当前操作系统不支持该主题");
 			return;
 		}

@@ -133,6 +133,7 @@ public class Main implements Log{
 		try {
 			List<IVPage> pages = ExecuteFlow.getPages(config);
 			map = ExecuteFlow.getPageMap(pages);
+			textArea.append("已读取页面信息:"+map);
 		}catch(Exception | CODException e) {
 			config.put(msg, e.toString());
 			Log.error(config);
@@ -152,6 +153,7 @@ public class Main implements Log{
 		config.put(msg, ConfigFlow.setDefOutPutDir(path));
 		proConfig.put(UserOptions.defOutPutDir,ConfigFlow.getDefOutPutDir());
 		Log.info(proConfig);
+		textArea.append("已设置默认输出路径："+proConfig.get(UserOptions.defOutPutDir));
 		return Produce.out(config,null,Sucess);
 	}
 	
@@ -170,6 +172,7 @@ public class Main implements Log{
 				config.put(msg, ConfigFlow.setDir(path,null));
 			}
 			Log.info(proConfig);
+			textArea.append("已设置输出路径："+path);
 		}catch(Exception e) {
 			config.put(msg, e.toString());
 			Log.error(config);
@@ -188,6 +191,7 @@ public class Main implements Log{
 		StringMap config = new StringMap();
 		try {
 			ExecuteFlow.setSelectedPageList(pageList);
+			textArea.append("已设选择页面："+pageList);
 		}catch(Exception e) {
 			config.put(msg, e.toString());
 			Log.error(config);
@@ -196,13 +200,6 @@ public class Main implements Log{
 		}
 		return Produce.out(config,null,Sucess);
 	}
-	
-//	public static String getDefOutputDir() {
-//		String def = proConfig.get(UserOptions.defOutPutDir);
-//		if(def==null) {
-//			init
-//		}
-//	}
 	
 	
 	/**
@@ -219,6 +216,7 @@ public class Main implements Log{
 				ExecuteFlow.saveVisioToSvg(proConfig.get(UserOptions.outPutDir));
 			}
 			config.put(msg, "");
+			textArea.append("已执行转换");
 		}catch(Exception | CODException e) {
 			config.put(msg, e.toString());
 			Log.error(config);
