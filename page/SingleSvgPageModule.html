@@ -60,14 +60,17 @@
 <script type="text/javascript">
 /* 
  说明：
- 原则：通过原生JS读取内部数据，动态生成所需视觉效果，确保页面只需在浏览器运行。
+ 原理：通过原生JS读取html文档内部数据，动态生成所需视觉效果，确保页面只需在浏览器运行。其中svg元素和配置需要借助外部程序事先写入到html模板文档中。
  没有使用jsoup或者nekoHtml等类库处理html文档，因为首先这会极大的增加html及其脚本对外部的依赖，
  这对多平台和通用性影响是很大的；其次，使用这些类库都必须解析html，永远无法避免一些意料之无的影响，如新的标签，自定义属性等；
- 再者，先解析html作为对象再修改，重新生成的html将无法维持原有格式，这对调试和维护是十分不友好的。
+ 再者，这些类库先解析html作为对象再进行格式化修改，重新生成的html将无法维持原有格式，这对调试和维护是十分不友好的。
  最后，所有页面所依赖的参数，都必需事先写入到html文件中，才能保证其独立运行。
 */
 
-//visio生成的svg文件是非常不规范的，无从得知某类图形的标识，需要借助外部程序读取vsd文件并将配置信息写入此注释后面，javascriptVarsAnchor是锚点
+/*
+ visio生成的svg文件是非常不规范的，无从得知某类图形的标识，需要借助外部程序读取vsd文件并将配置信息
+ （关键需要visio文件中泳道和分隔符的图形id）写入此注释后面，javascriptVarsAnchor是锚点
+*/
 //javascriptVarsAnchor
 
 window.onload = function(){
@@ -392,7 +395,7 @@ function enddrag() {
 		
 	<div id="basepanel"
 		style="position: absolute; top: 0px; left: 0px; width: 100%; height: 100%"
-		title="底板，覆盖在svg图片乃至整个页面的蒙板">
+		title="底板，在svg图片乃至整个页面下的蒙板">
 
 		<div id="Swimlane-Phase-panel"
 			style="position: relative; top: 0px; left: 0px; width: 100%; height: 100%"
